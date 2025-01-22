@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Blauer_Marlin</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Commands" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Core" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Interactions" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Rest" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Webhook" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.17.1" />
+    <PackageReference Include="Log4Net.Async" Version="2.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

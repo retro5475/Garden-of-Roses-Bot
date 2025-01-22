@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|c:\\users\\shadow\\source\\repos\\chaos ac\\blauer-marlin\\blauer-marlin\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|solutionrelative:blauer-marlin\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{57d563b6-44a5-47df-85be-f4199ad6b651}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Program.cs",
+              "RelativeDocumentMoniker": "Blauer-Marlin\\Program.cs",
+              "ToolTip": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Program.cs",
+              "RelativeToolTip": "Blauer-Marlin\\Program.cs",
+              "ViewState": "AgIAADABAAAAAAAAAAAgwKAAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-22T16:30:43.374Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
