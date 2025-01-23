@@ -28,17 +28,7 @@ class Program
             Name = "North America",
             Servers = new List<ServerInfo>
             {
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.70" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.71" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.72" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.73" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.74" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.75" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.76" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.77" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.78" },
-                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.79" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.80" }
+                new ServerInfo { Name = "Aether: LOGIN", IP = "204.2.29.80" }
             }
         },
         new RegionInfo
@@ -46,15 +36,15 @@ class Program
             Name = "Europe",
             Servers = new List<ServerInfo>
             {
-                new ServerInfo { Name = "🌼Chaos: LOGIN",IP = "80.239.145.6" }, //neolobby06.ffxiv.com > 80.239.145.6
-                new ServerInfo { Name = "🌸Light: LOGIN",IP = "80.239.145.7" }, // neolobby07.ffxiv.com > 80.239.145.7
-                new ServerInfo { Name = "🌸Light: Alpha",IP = "80.239.145.91" },
-                new ServerInfo { Name = "🌸Light: Lich",IP = "80.239.145.92" },
-                new ServerInfo { Name = "🌸Light: Odin",IP = "80.239.145.93" },
-                new ServerInfo { Name = "🌸Light: Phönx",IP = "80.239.145.94" },
-                new ServerInfo { Name = "🌸Light: Raiden",IP = "80.239.145.95" },
-                new ServerInfo { Name = "🌸Light: Shiva",IP = "80.239.145.96" },
-                new ServerInfo { Name = "🌸Light:  Twin",IP = "80.239.145.97" }
+                new ServerInfo { Name = "🌼Chaos: LOGIN", IP = "80.239.145.6" }, //neolobby06.ffxiv.com > 80.239.145.6
+                new ServerInfo { Name = "🌸Light: LOGIN", IP = "80.239.145.7" }, // neolobby07.ffxiv.com > 80.239.145.7
+                new ServerInfo { Name = "🌸Light: Alpha", IP = "80.239.145.91" },
+                new ServerInfo { Name = "🌸Light: Lich", IP = "80.239.145.92" },
+                new ServerInfo { Name = "🌸Light: Odin", IP = "80.239.145.93" },
+                new ServerInfo { Name = "🌸Light: Phönx", IP = "80.239.145.94" },
+                new ServerInfo { Name = "🌸Light: Raiden", IP = "80.239.145.95" },
+                new ServerInfo { Name = "🌸Light: Shiva", IP = "80.239.145.96" },
+                new ServerInfo { Name = "🌸Light: Twin", IP = "80.239.145.97" }
                 //new ServerInfo { Name = "🌸Light:   Zodi", IP = "80.239.145.90" }
 
 
@@ -74,7 +64,7 @@ class Program
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.67" },
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.68" },
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.69" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.70" }
+                new ServerInfo { Name = "ELEM: LOGIN", IP = "119.252.37.70" }
             }
         }
     };
@@ -223,41 +213,61 @@ class Program
             .Build();
     }
 
-    private static async Task PingServers() // wir pingen hier aber nicht.. ach egal..
+    private static async Task PingServers()
     {
         try
         {
-           
+            Log.Information("Pinging servers...");
 
             var embed = new EmbedBuilder()
                 .WithTitle("FFXIV Server Status")
                 .WithColor(Color.Blue)
                 .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
                 .WithTimestamp(DateTimeOffset.Now);
-            
 
             foreach (var region in _regions)
             {
-                if (!_regionPingStatus.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
-                    continue;
+                //idk breaks things
+                //if (!_regionPingStatus.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
+                //    continue;
 
-                string table = "```\n" +
-                               $"{"Server"} | {"Ping (ms)"} | {"Status"}\n" + // Align the header with right spacing
-                               new string('-', 45); // Line separator for the header
+                string table = "```\nServer    | Ping (ms) | Loss |   Status\n" +
+                               "\n ---------|-----------|------|---------- \n";
 
                 foreach (var server in region.Servers)
                 {
                     string status, responseTime;
                     string statusEmoji;
+                    string packetLoss = "0%";  // Default packet loss
+
+                    int successfulPings = 0;
+                    int totalPings = 5;  // Number of pings to test for packet loss
+
                     try
                     {
-                        using var ping = new Ping();
-                        var reply = await ping.SendPingAsync(server.IP);
+                        for (int i = 0; i < totalPings; i++)
+                        {
+                            using var ping = new Ping();
+                            var reply = await ping.SendPingAsync(server.IP);
 
-                        if (reply.Status == IPStatus.Success)
+                            if (reply.Status == IPStatus.Success)
+                            {
+                                successfulPings++;
+                            }
+                        }
+
+                        // Calculate packet loss as percentage
+                        int loss = totalPings - successfulPings;
+                        packetLoss = (loss > 0) ? $"{(loss * 100 / totalPings)}%" : "0%";
+
+                        // Ping last time for roundtrip time
+                        using var lastPing = new Ping();
+                        var finalReply = await lastPing.SendPingAsync(server.IP);
+
+                        if (finalReply.Status == IPStatus.Success)
                         {
                             status = "Online";
-                            responseTime = reply.RoundtripTime.ToString();
+                            responseTime = finalReply.RoundtripTime.ToString();
                             statusEmoji = "🟢"; // Green circle for online
                         }
                         else
@@ -275,7 +285,7 @@ class Program
                         Log.Error(ex, $"Error pinging server {server.Name} ({server.IP}).");
                     }
 
-                    table += $"\n{server.Name} |  {responseTime}ms  | {status} {statusEmoji}"; // Ensure emojis are part of the same column
+                    table += $"\n{server.Name} |  {responseTime}ms | {packetLoss}loss| {status} {statusEmoji}\n"; 
                 }
 
                 table += "\n```";
@@ -302,7 +312,7 @@ class Program
 
 
 
-    private static async Task HandleSlashCommandAsync(SocketSlashCommand command)
+    private static async Task HandleSlashCommandAsync(SocketSlashCommand command) //maybe seperate class later
     {
         try
         {

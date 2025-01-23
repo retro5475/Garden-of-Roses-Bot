@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dfe76280604bace2d899ae472850a14b1a166be6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c8d49816b81f081187dd047b10030c3193af1eac")]
 [assembly: System.Reflection.AssemblyProductAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
