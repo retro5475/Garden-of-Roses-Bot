@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Blauer-Marlin.csproj": {}
+    "C:\\Users\\rober\\Source\\Repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Blauer-Marlin.csproj": {
+    "C:\\Users\\rober\\Source\\Repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Blauer-Marlin.csproj",
+        "projectUniqueName": "C:\\Users\\rober\\Source\\Repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
         "projectName": "Blauer-Marlin",
-        "projectPath": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\Blauer-Marlin.csproj",
-        "packagesPath": "C:\\Users\\Shadow\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Shadow\\source\\repos\\Chaos AC\\Blauer-Marlin\\Blauer-Marlin\\obj\\",
+        "projectPath": "C:\\Users\\rober\\Source\\Repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+        "packagesPath": "C:\\Users\\rober\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\rober\\Source\\Repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Shadow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\rober\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -42,7 +42,7 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         },
         "SdkAnalysisLevel": "9.0.100"
       },
@@ -85,6 +85,18 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Serilog": {
+              "target": "Package",
+              "version": "[4.2.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[6.0.0, )"
             }
           },
           "imports": [
@@ -98,12 +110,30 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "c:\\program files\\dotnet\\sdk\\9.0.102\\RuntimeIdentifierGraph.json"
         }
       }
     }

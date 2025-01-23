@@ -8,6 +8,8 @@ using Discord.WebSocket;
 using System.Timers;
 using System.Collections.Generic;
 using Timer = System.Timers.Timer;
+using Serilog;
+using System.Reactive;
 
 class Program
 {
@@ -26,16 +28,16 @@ class Program
             Name = "North America",
             Servers = new List<ServerInfo>
             {
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.70" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.71" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.72" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.73" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.74" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.75" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.76" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.77" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.78" },
-                new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.79" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.70" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.71" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.72" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.73" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.74" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.75" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.76" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.77" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.78" },
+                //new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.79" },
                 new ServerInfo { Name = "Aether Lobby", IP = "204.2.29.80" }
             }
         },
@@ -44,16 +46,18 @@ class Program
             Name = "Europe",
             Servers = new List<ServerInfo>
             {
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.79" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.80" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.81" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.82" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.83" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.84" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.87" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.88" },
-                new ServerInfo { Name = "Chaos Lobby", IP = "80.239.145.89" },
-                new ServerInfo { Name = "Light Lobby", IP = "80.239.145.91" }
+                new ServerInfo { Name = "🌼Chaos: LOGIN",IP = "80.239.145.6" }, //neolobby06.ffxiv.com > 80.239.145.6
+                new ServerInfo { Name = "🌸Light: LOGIN",IP = "80.239.145.7" }, // neolobby07.ffxiv.com > 80.239.145.7
+                new ServerInfo { Name = "🌸Light: Alpha",IP = "80.239.145.91" },
+                new ServerInfo { Name = "🌸Light: Lich",IP = "80.239.145.92" },
+                new ServerInfo { Name = "🌸Light: Odin",IP = "80.239.145.93" },
+                new ServerInfo { Name = "🌸Light: Phönx",IP = "80.239.145.94" },
+                new ServerInfo { Name = "🌸Light: Raiden",IP = "80.239.145.95" },
+                new ServerInfo { Name = "🌸Light: Shiva",IP = "80.239.145.96" },
+                new ServerInfo { Name = "🌸Light:  Twin",IP = "80.239.145.97" }
+                //new ServerInfo { Name = "🌸Light:   Zodi", IP = "80.239.145.90" }
+
+
             }
         },
         new RegionInfo
@@ -61,128 +65,156 @@ class Program
             Name = "Japan",
             Servers = new List<ServerInfo>
             {
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.61" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.62" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.63" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.64" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.65" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.66" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.67" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.68" },
-                new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.69" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.61" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.62" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.63" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.64" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.65" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.66" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.67" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.68" },
+                //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.69" },
                 new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.70" }
             }
         }
     };
 
-    public static Func<LogMessage, Task> LogAsync => logMessage =>
-    {
-        Console.WriteLine(logMessage.ToString());
-        return Task.CompletedTask;
-    };
-
     static async Task Main(string[] args)
     {
-        LoadRegionPingStatus();
+        // Initialize Serilog
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
 
-        Console.WriteLine("Starte die Befehlsregistrierung...");
-        await RegisterSlashCommands(); // Befehlsregistrierung
-        Console.WriteLine("Befehle erfolgreich registriert!");
-
-        await StartBotAsync();
+        try
+        {
+            Log.Information("Bot starting...");
+            await StartBotAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "An unhandled exception occurred during startup.");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
     private static async Task RegisterSlashCommands()
     {
         try
         {
-            var commands = new List<ApplicationCommandProperties>
+            Log.Information("Registering slash commands...");
+
+            if (_client == null)
             {
-                new SlashCommandBuilder()
-                    .WithName("help")
-                    .WithDescription("Zeigt eine Liste der verfügbaren Befehle an.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("europe")
-                    .WithDescription("Aktiviert oder deaktiviert den Ping für die Europa-Server.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("usa")
-                    .WithDescription("Aktiviert oder deaktiviert den Ping für die Nordamerika-Server.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("japan")
-                    .WithDescription("Aktiviert oder deaktiviert den Ping für die Japan-Server.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("status")
-                    .WithDescription("Zeigt den aktuellen Status aller Regionen an.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("reload")
-                    .WithDescription("Lädt den Serverstatus neu.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("bob")
-                    .WithDescription("Antwortet mit einer lustigen Nachricht.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("shutdown")
-                    .WithDescription("Fährt den Bot herunter.")
-                    .Build(),
-                new SlashCommandBuilder()
-                    .WithName("restart")
-                    .WithDescription("Startet den Bot neu.")
-                    .Build()
+                Log.Error("Error: _client is null. Ensure the bot is started first.");
+                return;
+            }
+
+            var commands = new List<SlashCommandBuilder>
+            {
+                new SlashCommandBuilder().WithName("help").WithDescription("Shows a list of available commands."),
+                new SlashCommandBuilder().WithName("status").WithDescription("Displays the current status of all regions."),
+                new SlashCommandBuilder().WithName("bob").WithDescription("Responds with a funny message."),
+                new SlashCommandBuilder().WithName("shutdown").WithDescription("Shuts down the bot."),
             };
 
-            // Registriere neger Commands
-            await _client.BulkOverwriteGlobalApplicationCommandsAsync(commands.ToArray());
-            Console.WriteLine("Slash-Commands erfolgreich registriert!");
+            if (commands == null || commands.Count == 0)
+            {
+                Log.Error("Error: No commands to register.");
+                return;
+            }
+
+            ulong guildId = 1318269917769764884;
+            foreach (var command in commands)
+            {
+                var commandProperties = command.Build();
+                if (commandProperties != null)
+                {
+                    await _client.Rest.CreateGuildCommand(commandProperties, guildId);
+                    Log.Information($"Command {command.Name} registered.");
+                }
+                else
+                {
+                    Log.Error($"Error: Failed to build command {command.Name}.");
+                }
+            }
+
+            Log.Information("Slash commands registered successfully for the guild!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler bei der Registrierung der Slash-Commands: {ex.Message}");
+            Log.Error(ex, "Error registering slash commands.");
         }
     }
 
     private static async Task StartBotAsync()
     {
-        _client = new DiscordSocketClient(new DiscordSocketConfig
+        try
         {
-            GatewayIntents = GatewayIntents.AllUnprivileged
-        });
+            Log.Information("Starting the bot...");
 
-        _client.Log += LogAsync;
-        _client.Ready += ReadyAsync;
-        _client.MessageReceived += HandleMessageAsync;
+            _client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged
+            });
 
-        await _client.SetStatusAsync(UserStatus.DoNotDisturb);
-        await _client.SetGameAsync("Loading..");
+            _client.Log += logMessage =>
+            {
+                Log.Information($"Discord Log: {logMessage}");
+                return Task.CompletedTask;
+            };
 
-        var token = "MTMzMTcxMjU2MDY4NDIwODIzOQ.G4ydyX.jirNnSH_G6cxyubz6uXFLa6gncuKdYGp6HXDBk"; // Bot-Token 
-        await _client.LoginAsync(TokenType.Bot, token);
-        await _client.StartAsync();
+            _client.Ready += ReadyAsync;
+            _client.SlashCommandExecuted += HandleSlashCommandAsync;
 
-        _timer = new Timer(5000);
-        _timer.Elapsed += async (sender, e) => await PingServers();
-        _timer.Start();
+            await _client.SetStatusAsync(UserStatus.DoNotDisturb);
+            await _client.SetGameAsync("Ambi");
 
-        await Task.Delay(-1);
+            var token = "MTMzMTcxMjU2MDY4NDIwODIzOQ.G4ydyX.jirNnSH_G6cxyubz6uXFLa6gncuKdYGp6HXDBk"; 
+            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.StartAsync();
+
+            _timer = new Timer(5000);
+            _timer.Elapsed += async (sender, e) => await PingServers();
+            _timer.Start();
+
+            Log.Information("Bot started. Waiting for commands...");
+            await Task.Delay(-1);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error occurred during bot startup.");
+        }
     }
 
     private static async Task ReadyAsync()
     {
-        Console.WriteLine("Bot ist bereit!");
-        await _client.SetGameAsync("Marlin-Status");
+        try
+        {
+            Log.Information("Bot is ready!");
+            LoadRegionPingStatus();
+            await _client.SetGameAsync("FFXIV Server Status");
+            Log.Information("Registering commands...");
 
-        var channelId = ulong.Parse("1331663013719048243"); // Channel-ID
-        _channel = (SocketTextChannel)_client.GetChannel(channelId);
-        _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initialisiere Server-Status..."));
+            await RegisterSlashCommands();
+            var channelId = ulong.Parse("1331663013719048243");
+            _channel = (SocketTextChannel)_client.GetChannel(channelId);
+            _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
+            Log.Information("Ready event handled.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling ReadyAsync.");
+        }
     }
 
     private static Embed CreateEmbed(string description, Color? color = null)
     {
+        Log.Information("Creating embed with description: {Description}", description);
         return new EmbedBuilder()
             .WithTitle("FFXIV Server Status")
             .WithDescription(description)
@@ -191,187 +223,181 @@ class Program
             .Build();
     }
 
-
-
-
-    private static async Task PingServers()
+    private static async Task PingServers() // wir pingen hier aber nicht.. ach egal..
     {
-        var embed = new EmbedBuilder()
-            .WithTitle("FFXIV Server Status")
-            .WithColor(Color.Blue)
-            .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg") 
-            .WithTimestamp(DateTimeOffset.Now);
-
-        foreach (var region in _regions)
+        try
         {
-            if (!_regionPingStatus.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
-                continue;
+           
 
-            string table = "```\nServer              | Ping (ms) | Status\n" +
-                           "--------------------|-----------|--------\n";
+            var embed = new EmbedBuilder()
+                .WithTitle("FFXIV Server Status")
+                .WithColor(Color.Blue)
+                .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
+                .WithTimestamp(DateTimeOffset.Now);
+            
 
-            foreach (var server in region.Servers)
+            foreach (var region in _regions)
             {
-                string status, responseTime;
-                try
-                {
-                    using var ping = new Ping();
-                    var reply = await ping.SendPingAsync(server.IP);
+                if (!_regionPingStatus.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
+                    continue;
 
-                    if (reply.Status == IPStatus.Success)
+                string table = "```\n" +
+                               $"{"Server"} | {"Ping (ms)"} | {"Status"}\n" + // Align the header with right spacing
+                               new string('-', 45); // Line separator for the header
+
+                foreach (var server in region.Servers)
+                {
+                    string status, responseTime;
+                    string statusEmoji;
+                    try
                     {
-                        status = "Online";
-                        responseTime = reply.RoundtripTime.ToString();
+                        using var ping = new Ping();
+                        var reply = await ping.SendPingAsync(server.IP);
+
+                        if (reply.Status == IPStatus.Success)
+                        {
+                            status = "Online";
+                            responseTime = reply.RoundtripTime.ToString();
+                            statusEmoji = "🟢"; // Green circle for online
+                        }
+                        else
+                        {
+                            status = "Offline";
+                            responseTime = "N/A";
+                            statusEmoji = "🔴"; // Red circle for offline
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        status = "Offline";
+                        status = "Error";
                         responseTime = "N/A";
+                        statusEmoji = "⚪"; // White circle for error
+                        Log.Error(ex, $"Error pinging server {server.Name} ({server.IP}).");
                     }
-                }
-                catch
-                {
-                    status = "Fehler";
-                    responseTime = "N/A";
+
+                    table += $"\n{server.Name} |  {responseTime}ms  | {status} {statusEmoji}"; // Ensure emojis are part of the same column
                 }
 
-                table += $"{server.Name.PadRight(20)}| {responseTime.PadLeft(9)} | {status}\n";
+                table += "\n```";
+                embed.AddField(region.Name, table, false);
             }
 
-            table += "```";
-            embed.AddField(region.Name, table, false);
-        }
-
-        if (_currentMessage != null)
-        {
-            await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
-        }
-        else
-        {
-            _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
-        }
-    }
-
-
-    private static async Task HandleMessageAsync(SocketMessage message)
-    {
-        if (message.Author.IsBot) return;
-
-        var content = message.Content.ToLower();
-        if (content == "/help")
-        {
-            var embed = CreateEmbed("Verfügbare Befehle:\n\n" +
-                                    "`/europe` - Pingt Europa-Server nicht mehr.\n" +
-                                    "`/usa` - Pingt Nordamerika-Server nicht mehr.\n" +
-                                    "`/japan` - Pingt Japan-Server nicht mehr.\n" +
-                                    "`/status` - Zeigt aktuelle Ping-Status an.\n" +
-                                    "`/reload` - Lädt Server-Status neu.", Color.Green);
-            await message.Channel.SendMessageAsync(embed: embed);
-        }
-        else if (content == "/status")
-        {
-            var statuses = string.Join("\n", _regionPingStatus.Select(kv => $"{kv.Key}: {(kv.Value ? "Aktiv" : "Inaktiv")}"));
-            await message.Channel.SendMessageAsync(embed: CreateEmbed($"Region-Status:\n{statuses}", Color.Gold));
-        }
-        else if (content == "/europe" || content == "/usa" || content == "/japan")
-        {
-            var regionName = content.Substring(1); // Entfernt "/"
-            if (_regionPingStatus.ContainsKey(regionName))
-            {
-                _regionPingStatus[regionName] = !_regionPingStatus[regionName];
-                SaveRegionPingStatus();
-                var status = _regionPingStatus[regionName] ? "aktiviert" : "deaktiviert";
-
-                await UpdateEmbedForRegion(regionName, _regionPingStatus[regionName]);
-                await message.Channel.SendMessageAsync(embed: CreateEmbed($"Ping für {regionName} {status}.", _regionPingStatus[regionName] ? Color.Green : Color.Red));
-            }
-        }
-        else if (content == "/bob")
-        {
-            await message.Channel.SendMessageAsync("Gewinne kannste das Ding eh net, weil der Bob Tschigerillo macht mit! ");
-        }
-        else if (content == "/shutdown")
-        {
-            await message.Channel.SendMessageAsync("Der Bot wird jetzt heruntergefahren. Auf Wiedersehen! 👋");
-            
-            await Task.Delay(1000);
-            Environment.Exit(0); 
-        }
-        else if (content == "/restart")
-        {
-            await message.Channel.SendMessageAsync("Der Bot wird jetzt neu gestartet. Bitte warten... 🔄");
-            
-            await Task.Delay(1000); 
-            System.Diagnostics.Process.Start(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
-            Environment.Exit(0);
-        }
-        else if (content == "/reload")
-        {
             if (_currentMessage != null)
             {
-                await _currentMessage.DeleteAsync();
-                _currentMessage = null;
+                Log.Information("Modifying current message with new embed.");
+                await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
             }
-
-            _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Lade Server-Status neu..."));
-            await PingServers();
+            else
+            {
+                Log.Information("Sending new message with embed.");
+                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error pinging servers.");
         }
     }
 
-    private static async Task UpdateEmbedForRegion(string regionName, bool isActive)
+
+
+
+    private static async Task HandleSlashCommandAsync(SocketSlashCommand command)
     {
-        // Holt aktuelle Embed
-        var embed = _currentMessage?.Embeds.FirstOrDefault();
-        if (embed == null) return;
-
-        var builder = embed.ToEmbedBuilder();
-        var fields = builder.Fields;
-
-        // Entfernt oder fügt die Region basierend auf dem Status hinzu
-        var fieldIndex = fields.FindIndex(field => field.Name.Equals(regionName, StringComparison.OrdinalIgnoreCase));
-        if (!isActive)
+        try
         {
-            // Region deaktivieren: Feld entfernen
-            if (fieldIndex >= 0)
-                fields.RemoveAt(fieldIndex);
+            Log.Information("Handling slash command: {CommandName}", command.CommandName);
+
+            switch (command.CommandName)
+            {
+                case "help":
+                    Log.Information("User requested help.");
+                    await command.RespondAsync(embed: CreateEmbed("Available commands:\n\n" +
+                        "`/europe` - Toggles Europe server ping.\n" +
+                        "`/usa` - Toggles North America server ping.\n" +
+                        "`/japan` - Toggles Japan server ping.\n" +
+                        "`/status` - Displays the current ping status.\n" +
+                        "`/reload` - Reloads server status.", Color.Green));
+                    break;
+
+                case "status":
+                    Log.Information("Status command executed.");
+                    string statusMessage = "Current Region Status:\n\n";
+                    foreach (var region in _regions)
+                    {
+                        var isActive = _regionPingStatus.GetValueOrDefault(region.Name.ToLower(), false);
+                        statusMessage += $"{region.Name}: {(isActive ? "Active" : "Inactive")}\n";
+                    }
+                    await command.RespondAsync(embed: CreateEmbed(statusMessage, Color.Blue));
+                    break;
+
+                case "reload":
+                    Log.Information("Reloading server status...");
+                    await PingServers();
+                    await command.RespondAsync("Server status reloaded.", ephemeral: true);
+                    break;
+
+                case "bob":
+                    Log.Information("User invoked 'bob' command.");
+                    await command.RespondAsync("Kannst das Ding eh net gewinne, denn der Bob Tschigerillo macht mit", ephemeral: true);
+                    break;
+
+                case "shutdown":
+                    Log.Information("Shutting down the bot...");
+                    await command.RespondAsync("Shutting down...", ephemeral: true);
+                    Environment.Exit(0);
+                    break;
+
+                default:
+                    await command.RespondAsync("Unknown command.", ephemeral: true);
+                    Log.Warning($"Unknown command {command.CommandName} invoked.");
+                    break;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Region aktivieren: Feld hinzufügen, falls es noch nicht existiert
-            if (fieldIndex == -1)
-                fields.Add(new EmbedFieldBuilder { Name = regionName, Value = "Initialisiere Server-Status...", IsInline = false });
-        }
-
-        
-        builder.Fields = fields;
-        await _currentMessage.ModifyAsync(msg => msg.Embed = builder.Build());
-
-        // Server neu pingen, wenn aktiviert
-        if (isActive)
-        {
-            await PingServers();
+            Log.Error(ex, "Error occurred while handling command.");
+            await command.RespondAsync("An error occurred while processing your request.", ephemeral: true);
         }
     }
-
 
     private static void LoadRegionPingStatus()
     {
-        if (!File.Exists(ConfigFilePath))
+        try
         {
-            _regionPingStatus = _regions.ToDictionary(r => r.Name.ToLower(), _ => true);
-            SaveRegionPingStatus();
+            Log.Information("Loading region ping status...");
+            if (!File.Exists(ConfigFilePath))
+            {
+                _regionPingStatus = _regions.ToDictionary(r => r.Name.ToLower(), _ => true);
+                SaveRegionPingStatus();
+                Log.Information("No configuration file found, initializing default ping status.");
+            }
+            else
+            {
+                var json = File.ReadAllText(ConfigFilePath);
+                _regionPingStatus = JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
+                Log.Information("Loaded region ping status from file.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var json = File.ReadAllText(ConfigFilePath);
-            _regionPingStatus = JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
+            Log.Error(ex, "Error loading region ping status.");
         }
     }
 
     private static void SaveRegionPingStatus()
     {
-        var json = JsonSerializer.Serialize(_regionPingStatus, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(ConfigFilePath, json);
+        try
+        {
+            Log.Information("Saving region ping status...");
+            var json = JsonSerializer.Serialize(_regionPingStatus, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(ConfigFilePath, json);
+            Log.Information("Region ping status saved.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving region ping status.");
+        }
     }
 }
 
