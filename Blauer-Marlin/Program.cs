@@ -10,22 +10,38 @@ using System.Collections.Generic;
 using Timer = System.Timers.Timer;
 using Serilog;
 using System.Reactive;
+using System;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using Discord.Commands;
+using System.Reflection.Metadata;
+using System.Reflection;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using log4net.Plugin;
 
 class Program
 {
+    private static List<Assembly> _loadedPlugins = new List<Assembly>();
     private static DiscordSocketClient _client;
     private static SocketTextChannel _channel;
+    private static CommandService _commands;
+    private static IServiceProvider _services;
     private static Timer _timer;
     private static IUserMessage _currentMessage;
     private static Dictionary<string, bool> _regionPingStatus;
 
-    private static readonly string ConfigFilePath = "regionPingStatus.json";
+    private static readonly string ConfigFilePath = "files/regionPingStatus.json";
 
     private static readonly List<RegionInfo> _regions = new List<RegionInfo>
     {
         new RegionInfo
         {
-            Name = "North America",
+            Name = "USA",
             Servers = new List<ServerInfo>
             {
                 new ServerInfo { Name = "Aether: LOGIN", IP = "204.2.29.80" }
@@ -64,19 +80,25 @@ class Program
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.67" },
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.68" },
                 //new ServerInfo { Name = "Elemental Lobby", IP = "119.252.37.69" },
-                new ServerInfo { Name = "ELEM: LOGIN", IP = "119.252.37.70" }
+                //new ServerInfo { Name = "ELEM: LOGIN", IP = "119.252.37.70" }
             }
         }
     };
 
     static async Task Main(string[] args)
     {
+        _client = new DiscordSocketClient();
+        _commands = new CommandService();
+        CheckAndCreateDirectories();
+        
+
         // Initialize Serilog
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
             .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
+        
         try
         {
             Log.Information("Bot starting...");
@@ -92,54 +114,7 @@ class Program
         }
     }
 
-    private static async Task RegisterSlashCommands()
-    {
-        try
-        {
-            Log.Information("Registering slash commands...");
-
-            if (_client == null)
-            {
-                Log.Error("Error: _client is null. Ensure the bot is started first.");
-                return;
-            }
-
-            var commands = new List<SlashCommandBuilder>
-            {
-                new SlashCommandBuilder().WithName("help").WithDescription("Shows a list of available commands."),
-                new SlashCommandBuilder().WithName("status").WithDescription("Displays the current status of all regions."),
-                new SlashCommandBuilder().WithName("bob").WithDescription("Responds with a funny message."),
-                new SlashCommandBuilder().WithName("shutdown").WithDescription("Shuts down the bot."),
-            };
-
-            if (commands == null || commands.Count == 0)
-            {
-                Log.Error("Error: No commands to register.");
-                return;
-            }
-
-            ulong guildId = 1318269917769764884;
-            foreach (var command in commands)
-            {
-                var commandProperties = command.Build();
-                if (commandProperties != null)
-                {
-                    await _client.Rest.CreateGuildCommand(commandProperties, guildId);
-                    Log.Information($"Command {command.Name} registered.");
-                }
-                else
-                {
-                    Log.Error($"Error: Failed to build command {command.Name}.");
-                }
-            }
-
-            Log.Information("Slash commands registered successfully for the guild!");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error registering slash commands.");
-        }
-    }
+    
 
     private static async Task StartBotAsync()
     {
@@ -166,6 +141,8 @@ class Program
 
             var token = "MTMzMTcxMjU2MDY4NDIwODIzOQ.G4ydyX.jirNnSH_G6cxyubz6uXFLa6gncuKdYGp6HXDBk"; 
             await _client.LoginAsync(TokenType.Bot, token);
+            await PluginLoader.LoadAndExecutePluginsAsync(_client);
+
             await _client.StartAsync();
 
             _timer = new Timer(5000);
@@ -190,7 +167,7 @@ class Program
             await _client.SetGameAsync("FFXIV Server Status");
             Log.Information("Registering commands...");
 
-            await RegisterSlashCommands();
+            await commands.RegisterSlashCommands(_client);
             var channelId = ulong.Parse("1331663013719048243");
             _channel = (SocketTextChannel)_client.GetChannel(channelId);
             _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
@@ -225,14 +202,36 @@ class Program
                 .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
                 .WithTimestamp(DateTimeOffset.Now);
 
+            Dictionary<string, bool> regionStatuses = new();
+            if (File.Exists(ConfigFilePath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(ConfigFilePath);
+                    regionStatuses = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new Dictionary<string, bool>();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error reading the region status configuration file.");
+                }
+            }
+            else
+            {
+                Log.Warning($"Config file {ConfigFilePath} not found. Defaulting to active for all regions.");
+            }
+
+            // Schleife über alle Regionen
             foreach (var region in _regions)
             {
-                //idk breaks things
-                //if (!_regionPingStatus.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
-                //    continue;
+                // Region prüfen, ob sie in der Datei aktiv ist
+                if (!regionStatuses.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
+                {
+                    Log.Information($"Skipping region {region.Name} (inactive).");
+                    continue;
+                }
 
-                string table = "```\nServer    | Ping (ms) | Loss |   Status\n" +
-                               "\n ---------|-----------|------|---------- \n";
+                string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
+                               " --------------|-----------|------|-------\n";
 
                 foreach (var server in region.Servers)
                 {
@@ -285,10 +284,10 @@ class Program
                         Log.Error(ex, $"Error pinging server {server.Name} ({server.IP}).");
                     }
 
-                    table += $"\n{server.Name} |  {responseTime}ms | {packetLoss}loss| {status} {statusEmoji}\n"; 
+                    table += $"{server.Name.PadRight(15)}| {responseTime.PadLeft(5)} ms  | {packetLoss.PadLeft(5)}| {status} {statusEmoji}\n";
                 }
 
-                table += "\n```";
+                table += "```";
                 embed.AddField(region.Name, table, false);
             }
 
@@ -308,6 +307,142 @@ class Program
             Log.Error(ex, "Error pinging servers.");
         }
     }
+
+
+
+    static void CheckAndCreateDirectories()
+    {
+        if (!Directory.Exists("files"))
+            Directory.CreateDirectory("files");
+        if (!Directory.Exists("plugins"))
+            Directory.CreateDirectory("plugins");
+
+    }
+
+
+    public class PluginLoader
+    {
+        private static readonly List<Assembly> _loadedPlugins = new List<Assembly>();
+
+        public static async Task LoadAndExecutePluginsAsync(DiscordSocketClient _client)
+        {
+            _loadedPlugins.Clear();
+
+            var pluginFiles = Directory.GetFiles("plugins", "*.cs"); // Alle .cs-Dateien im Ordner "plugins"
+            foreach (var file in pluginFiles)
+            {
+                try
+                {
+                    Console.WriteLine($"Loading plugin: {Path.GetFileName(file)}");
+
+                    // Plugin-Code einlesen
+                    var code = File.ReadAllText(file);
+
+                    // ScriptOptions konfigurieren
+                    var scriptOptions = ScriptOptions.Default
+                        .WithReferences(AppDomain.CurrentDomain.GetAssemblies())
+                        .WithImports(
+                            "System",
+                            "System.IO",
+                            "System.Linq",
+                            "System.Collections.Generic",
+                            "Discord",
+                            "Discord.WebSocket",
+                            "Discord.Commands",
+                            "System.Threading.Tasks"
+                        );
+
+                    // Script erstellen und kompilieren
+                    var script = CSharpScript.Create(code, scriptOptions);
+                    var compilation = script.GetCompilation();
+
+                    using var ms = new MemoryStream();
+                    var result = compilation.Emit(ms); // Code kompilieren und in MemoryStream speichern
+
+                    if (result.Success)
+                    {
+                        ms.Seek(0, SeekOrigin.Begin);
+                        var assembly = Assembly.Load(ms.ToArray()); // Assembly aus Stream laden
+
+                        _loadedPlugins.Add(assembly); // Geladene Assembly zur Liste hinzufügen
+                        Console.WriteLine($"Loaded plugin: {Path.GetFileName(file)}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error compiling plugin {file}: {string.Join(", ", result.Diagnostics)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading plugin {file}: {ex.Message}");
+                }
+            }
+
+            // Starte die Plugins in einem separaten Task
+            _ = Task.Run(async () =>
+            {
+                foreach (var plugin in _loadedPlugins)
+                {
+                    await ExecutePluginAsync(plugin, _client);
+                }
+            });
+        }
+
+        private static async Task ExecutePluginAsync(Assembly assembly, DiscordSocketClient _client)
+        {
+            try
+            {
+                // Alle Typen in der Assembly durchsuchen
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (type.GetMethod("RunAsync") != null)
+                    {
+                        // Hier wird die Instanz mit dem richtigen Konstruktor erstellt und der Client übergeben
+                        var constructor = type.GetConstructor(new[] { typeof(DiscordSocketClient) });
+
+                        if (constructor != null)
+                        {
+                            // Instanz mit dem Konstruktor erstellen
+                            var instance = constructor.Invoke(new object[] { _client });
+
+                            var method = type.GetMethod("RunAsync");
+
+                            if (method != null)
+                            {
+                                // Plugin in einem separaten Task ausführen, um Blockierungen zu verhindern
+                                _ = Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        Console.WriteLine($"Executing plugin: {type.Name}");
+                                        var task = method.Invoke(instance, null) as Task;
+
+                                        if (task != null)
+                                        {
+                                            await task; // Ausführung der Methode abwarten
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error executing plugin {type.Name}: {ex.Message}");
+                                    }
+                                });
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"No valid constructor found for {type.Name}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing plugin: {ex.Message}");
+            }
+        }
+    }
+
 
 
 
@@ -346,11 +481,26 @@ class Program
                     await PingServers();
                     await command.RespondAsync("Server status reloaded.", ephemeral: true);
                     break;
+                case "europe":
+                case "usa":
+                case "japan":
+                    Log.Information($"{command.CommandName} command executed.");
+                    var regionName = command.CommandName; // Entfernt "/"
+                    if (_regionPingStatus.ContainsKey(regionName))
+                    {
+                        _regionPingStatus[regionName] = !_regionPingStatus[regionName];
+                        SaveRegionPingStatus();
+                        var status = _regionPingStatus[regionName] ? "aktiviert" : "deaktiviert";
 
+                        await command.RespondAsync(embed: CreateEmbed($"Ping für {regionName} {status}.", _regionPingStatus[regionName] ? Color.Green : Color.Red), ephemeral: true);
+                    }
+                    break;
                 case "bob":
                     Log.Information("User invoked 'bob' command.");
                     await command.RespondAsync("Kannst das Ding eh net gewinne, denn der Bob Tschigerillo macht mit", ephemeral: true);
                     break;
+
+
 
                 case "shutdown":
                     Log.Information("Shutting down the bot...");
@@ -392,6 +542,7 @@ class Program
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading region ping status.");
+            _regionPingStatus = _regions.ToDictionary(r => r.Name.ToLower(), _ => true);
         }
     }
 
@@ -413,12 +564,12 @@ class Program
 
 public class ServerInfo
 {
-    public string Name { get; set; }
-    public string IP { get; set; }
+    public string? Name { get; set; }
+    public string? IP { get; set; }
 }
 
 public class RegionInfo
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public List<ServerInfo> Servers { get; set; } = new List<ServerInfo>();
 }
