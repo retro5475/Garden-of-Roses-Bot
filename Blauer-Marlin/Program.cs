@@ -145,7 +145,7 @@ class Program
 
             await _client.StartAsync();
 
-            _timer = new Timer(5000);
+            _timer = new Timer(60000); // 1 Minute
             _timer.Elapsed += async (sender, e) => await PingServers();
             _timer.Start();
 
@@ -392,7 +392,7 @@ class Program
         {
             try
             {
-                // Alle Typen in der Assembly durchsuchen
+                // Alle Typen in der Assembly durchsuchena
                 foreach (var type in assembly.GetTypes())
                 {
                     if (type.GetMethod("RunAsync") != null)
@@ -447,7 +447,7 @@ class Program
 
 
 
-    private static async Task HandleSlashCommandAsync(SocketSlashCommand command) //maybe seperate class later
+    private static async Task HandleSlashCommandAsync(SocketSlashCommand command)
     {
         try
         {
@@ -462,7 +462,47 @@ class Program
                         "`/usa` - Toggles North America server ping.\n" +
                         "`/japan` - Toggles Japan server ping.\n" +
                         "`/status` - Displays the current ping status.\n" +
-                        "`/reload` - Reloads server status.", Color.Green));
+                        "`/reload` - Reloads server status.\n" +
+                        "`/ban` - Bans a user.\n" +
+                        "`/unban` - Unbans a user.\n" +
+                        "`/kick` - Kicks a user.\n" +
+                        "`/mute` - Mutes a user.\n" +
+                        "`/unmute` - Unmutes a user.\n" +
+                        "`/warn` - Warns a user.\n" +
+                        "`/clearwarns` - Clears a user's warnings.\n" +
+                        "`/userinfo` - Displays user information.\n" +
+                        "`/setnickname` - Sets a user's nickname.\n" +
+                        "`/lockdown` - Locks the channel temporarily.\n" +
+                        "`/unlock` - Unlocks the channel.\n" +
+                        "`/addrole` - Adds a role to a user.\n" +
+                        "`/removerole` - Removes a role from a user.\n" +
+                        "`/mutechannel` - Mutes a channel.\n" +
+                        "`/unmutechannel` - Unmutes a channel.\n" +
+                        "`/slowmode` - Sets a slow mode on a channel.\n" +
+                        "`/announce` - Sends an announcement.\n" +
+                        "`/setprefix` - Sets a custom prefix.\n" +
+                        "`/clear` - Clears messages in a channel.\n" +
+                        "`/purge` - Purges messages older than a certain time.\n" +
+                        "`/filter` - Set up a word filter.\n" +
+                        "`/showwarns` - Shows warnings for a user.\n" +
+                        "`/clearallwarns` - Clears all warnings from the server.\n" +
+                        "`/banlist` - Displays the ban list.\n" +
+                        "`/tempmute` - Temporarily mutes a user.\n" +
+                        "`/tempban` - Temporarily bans a user.\n" +
+                        "`/tempkick` - Temporarily kicks a user.\n" +
+                        "`/setwelcome` - Sets a welcome message.\n" +
+                        "`/setgoodbye` - Sets a goodbye message.\n" +
+                        "`/toggleprefix` - Toggles the prefix feature.\n" +
+                        "`/addreaction` - Adds a reaction to a message.\n" +
+                        "`/clearreactions` - Clears reactions from a message.\n" +
+                        "`/suspend` - Suspends a user from chatting.\n" +
+                        "`/rejoin` - Allows a suspended user to rejoin the chat.\n" +
+                        "`/serverinfo` - Displays server information.\n" +
+                        "`/poll` - Creates a poll.\n" +
+                        "`/setautomod` - Sets up an automated moderation system.\n" +
+                        "`/cleanchannels` - Deletes unused channels.\n" +
+                        "`/setlogchannel` - Sets a channel for logs.\n" +
+                        "`/purgeuser` - Purges messages from a specific user.\n", Color.Green));
                     break;
 
                 case "status":
@@ -481,31 +521,124 @@ class Program
                     await PingServers();
                     await command.RespondAsync("Server status reloaded.", ephemeral: true);
                     break;
+
                 case "europe":
                 case "usa":
                 case "japan":
                     Log.Information($"{command.CommandName} command executed.");
-                    var regionName = command.CommandName; // Entfernt "/"
+                    var regionName = command.CommandName;
                     if (_regionPingStatus.ContainsKey(regionName))
                     {
                         _regionPingStatus[regionName] = !_regionPingStatus[regionName];
                         SaveRegionPingStatus();
-                        var status = _regionPingStatus[regionName] ? "aktiviert" : "deaktiviert";
-
-                        await command.RespondAsync(embed: CreateEmbed($"Ping für {regionName} {status}.", _regionPingStatus[regionName] ? Color.Green : Color.Red), ephemeral: true);
+                        var status = _regionPingStatus[regionName] ? "enabled" : "disabled";
+                        await command.RespondAsync(embed: CreateEmbed($"Ping for {regionName} {status}.", _regionPingStatus[regionName] ? Color.Green : Color.Red), ephemeral: true);
                     }
                     break;
-                case "bob":
-                    Log.Information("User invoked 'bob' command.");
-                    await command.RespondAsync("Kannst das Ding eh net gewinne, denn der Bob Tschigerillo macht mit", ephemeral: true);
-                    break;
-
-
 
                 case "shutdown":
                     Log.Information("Shutting down the bot...");
                     await command.RespondAsync("Shutting down...", ephemeral: true);
                     Environment.Exit(0);
+                    break;
+
+                case "ban":
+                    var banUser = (SocketUser)command.Data.Options.First().Value;
+                    var banReason = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
+                    await BanUserAsync(banUser, banReason);
+                    await command.RespondAsync($"User {banUser.Username} has been banned for: {banReason}", ephemeral: true);
+                    break;
+
+                //TODO
+
+                //case "unban":
+                //    var unbanUser = (string)command.Data.Options.First().Value;
+                //    await UnbanUserAsync(unbanUser);
+                //    await command.RespondAsync($"User {unbanUser} has been unbanned.", ephemeral: true);
+                //    break;
+
+                case "kick":
+                    var kickUser = (SocketUser)command.Data.Options.First().Value;
+                    await KickUserAsync(kickUser);
+                    await command.RespondAsync($"User {kickUser.Username} has been kicked.", ephemeral: true);
+                    break;
+
+                case "mute":
+                    var muteUser = (SocketUser)command.Data.Options.First().Value;
+                    await MuteUserAsync(muteUser);
+                    await command.RespondAsync($"User {muteUser.Username} has been muted.", ephemeral: true);
+                    break;
+
+                case "unmute":
+                    var unmuteUser = (SocketUser)command.Data.Options.First().Value;
+                    await UnmuteUserAsync(unmuteUser);
+                    await command.RespondAsync($"User {unmuteUser.Username} has been unmuted.", ephemeral: true);
+                    break;
+
+                case "warn":
+                    var warnUser = (SocketUser)command.Data.Options.First().Value;
+                    var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
+                    await WarnUserAsync(warnUser, warnMessage);
+                    await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
+                    break;
+
+                case "clearwarns":
+                    var clearWarnUser = (SocketUser)command.Data.Options.First().Value;
+                    await ClearWarningsAsync(clearWarnUser);
+                    await command.RespondAsync($"Warnings for {clearWarnUser.Username} have been cleared.", ephemeral: true);
+                    break;
+
+                case "setnickname":
+                    var nicknameUser = (SocketUser)command.Data.Options.First().Value;
+                    var nickname = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "";
+                    await SetNicknameAsync(nicknameUser, nickname);
+                    await command.RespondAsync($"User {nicknameUser.Username}'s nickname has been set to {nickname}.", ephemeral: true);
+                    break;
+
+                case "lockdown":
+                    await LockdownChannelAsync(command);
+                    await command.RespondAsync("Channel has been locked down.", ephemeral: true);
+                    break;
+
+                case "unlock":
+                    await UnlockChannelAsync(command);
+                    await command.RespondAsync("Channel has been unlocked.", ephemeral: true);
+                    break;
+
+                case "addrole":
+                    var addRoleUser = (SocketUser)command.Data.Options.First().Value;
+                    var addRole = (SocketRole)command.Data.Options.ElementAt(1).Value;
+                    await AddRoleToUserAsync(addRoleUser, addRole);
+                    await command.RespondAsync($"Role {addRole.Name} has been added to {addRoleUser.Username}.", ephemeral: true);
+                    break;
+
+                case "removerole":
+                    var removeRoleUser = (SocketUser)command.Data.Options.First().Value;
+                    var removeRole = (SocketRole)command.Data.Options.ElementAt(1).Value;
+                    await RemoveRoleFromUserAsync(removeRoleUser, removeRole);
+                    await command.RespondAsync($"Role {removeRole.Name} has been removed from {removeRoleUser.Username}.", ephemeral: true);
+                    break;
+
+                case "mutechannel":
+                    await MuteChannelAsync();
+                    await command.RespondAsync("The channel has been muted.", ephemeral: true);
+                    break;
+
+                case "unmutechannel":
+                    await UnmuteChannelAsync();
+                    await command.RespondAsync("The channel has been unmuted.", ephemeral: true);
+                    break;
+
+                case "slowmode":
+                    var slowModeDuration = (int)command.Data.Options.First().Value;
+                    await SetSlowModeAsync(command, slowModeDuration);
+                    await command.RespondAsync($"Slow mode has been set for {slowModeDuration} seconds.", ephemeral: true);
+                    break;
+
+                case "clear":
+                    var clearCount = (int)command.Data.Options.First().Value;
+                    await ClearMessagesAsync(command, clearCount);
+                    await command.RespondAsync($"Cleared {clearCount} messages.", ephemeral: true);
                     break;
 
                 default:
@@ -520,6 +653,160 @@ class Program
             await command.RespondAsync("An error occurred while processing your request.", ephemeral: true);
         }
     }
+
+    //TODO Own Class
+
+    private static async Task LockdownChannelAsync(SocketSlashCommand command)
+    {
+        var channel = (ITextChannel)command.Channel;
+        await channel.AddPermissionOverwriteAsync(command.User, new OverwritePermissions(sendMessages: PermValue.Deny));
+    }
+
+    private static async Task UnlockChannelAsync(SocketSlashCommand command)
+    {
+        var channel = (ITextChannel)command.Channel;
+        await channel.AddPermissionOverwriteAsync(command.User, new OverwritePermissions(sendMessages: PermValue.Allow));
+    }
+
+    private static async Task SetSlowModeAsync(SocketSlashCommand command, int duration)
+    {
+        await (command.Channel as ITextChannel).ModifyAsync(properties => properties.SlowModeInterval = duration);
+    }
+
+    private static async Task ClearMessagesAsync(SocketSlashCommand command, int count)
+    {
+        var messages = await (command.Channel as ITextChannel).GetMessagesAsync(count).FlattenAsync();
+        await (command.Channel as ITextChannel).DeleteMessagesAsync(messages);
+    }
+
+    private static Embed CreateEmbed(string description, Color color)
+    {
+        var embed = new EmbedBuilder()
+            .WithDescription(description)
+            .WithColor(color)
+            .Build();
+
+        return embed;
+    }
+
+    //private static async Task PingServers()
+    //{
+    //    // Logic to ping servers (e.g., sending ping requests and updating status)
+    //    Log.Information("Pinged all servers.");
+    //}
+
+
+    private static async Task BanUserAsync(SocketUser user, string reason)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.BanAsync(reason: reason);
+            Log.Information($"User {user.Username} banned for: {reason}");
+        }
+    }
+
+    //TODO Fix async
+
+    //private static async Task UnbanUserAsync(string username)
+    //{
+    //    var bannedUsers = await command.Guild.GetBansAsync();
+    //    var ban = bannedUsers.FirstOrDefault(b => b.User.Username == username);
+
+    //    if (ban.User != null)
+    //    {
+    //        await command.Guild.RemoveBanAsync(ban.User);
+    //        Log.Information($"User {ban.User.Username} unbanned.");
+    //    }
+    //}
+
+    private static async Task KickUserAsync(SocketUser user)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.KickAsync();
+            Log.Information($"User {user.Username} kicked.");
+        }
+    }
+
+    private static async Task MuteUserAsync(SocketUser user)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.AddRoleAsync(guildUser.Guild.Roles.First(r => r.Name == "Muted"));
+            Log.Information($"User {user.Username} muted.");
+        }
+    }
+
+    private static async Task UnmuteUserAsync(SocketUser user)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.RemoveRoleAsync(guildUser.Guild.Roles.First(r => r.Name == "Muted"));
+            Log.Information($"User {user.Username} unmuted.");
+        }
+    }
+
+    private static async Task WarnUserAsync(SocketUser user, string message)
+    {
+        //TODO Save in DB
+        Log.Information($"User {user.Username} warned for: {message}");
+    }
+
+    private static async Task ClearWarningsAsync(SocketUser user)
+    {
+        //TODO Save in DB
+        Log.Information($"Warnings for user {user.Username} cleared.");
+    }
+
+    private static async Task SetNicknameAsync(SocketUser user, string nickname)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.ModifyAsync(properties => properties.Nickname = nickname);
+            Log.Information($"Nickname for {user.Username} set to {nickname}.");
+        }
+    }
+
+    private static async Task AddRoleToUserAsync(SocketUser user, SocketRole role)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.AddRoleAsync(role);
+            Log.Information($"Role {role.Name} added to {user.Username}.");
+        }
+    }
+
+    private static async Task RemoveRoleFromUserAsync(SocketUser user, SocketRole role)
+    {
+        var guildUser = user as SocketGuildUser;
+        if (guildUser != null)
+        {
+            await guildUser.RemoveRoleAsync(role);
+            Log.Information($"Role {role.Name} removed from {user.Username}.");
+        }
+    }
+
+    private static async Task MuteChannelAsync()
+    {
+
+        //TODO LOGIC
+        Log.Information("Channel muted.");
+    }
+
+    private static async Task UnmuteChannelAsync()
+    {
+        //TODO LOGIC
+        Log.Information("Channel unmuted.");
+    }
+
+
+
 
     private static void LoadRegionPingStatus()
     {
