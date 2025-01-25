@@ -191,7 +191,7 @@ class Program
             Log.Information("Registering commands...");
 
             await RegisterSlashCommands();
-            var channelId = ulong.Parse("1331663013719048243");
+            var channelId = ulong.Parse("1331803694294896796");
             _channel = (SocketTextChannel)_client.GetChannel(channelId);
             _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
             Log.Information("Ready event handled.");
