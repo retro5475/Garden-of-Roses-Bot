@@ -137,7 +137,7 @@ class Program
             _client.SlashCommandExecuted += HandleSlashCommandAsync;
 
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
-            await _client.SetGameAsync("Ambi");
+            await _client.SetGameAsync("N/A");
 
             var token = "MTMzMTcxMjU2MDY4NDIwODIzOQ.G4ydyX.jirNnSH_G6cxyubz6uXFLa6gncuKdYGp6HXDBk"; 
             await _client.LoginAsync(TokenType.Bot, token);
@@ -575,12 +575,30 @@ class Program
                     await command.RespondAsync($"User {unmuteUser.Username} has been unmuted.", ephemeral: true);
                     break;
 
-                case "warn":
-                    var warnUser = (SocketUser)command.Data.Options.First().Value;
-                    var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
-                    await WarnUserAsync(warnUser, warnMessage);
-                    await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
-                    break;
+case "warn":
+    var warnUser = (SocketUser)command.Data.Options.First().Value;
+    var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
+    
+    // Warn the user and notify them via DM
+    await WarnUserAsync(warnUser, warnMessage);
+
+    // Send a DM to the user with the warning message
+    try
+    {
+        // Use GetOrCreateDMChannelAsync() directly on the SocketUser
+        var dmChannel = await warnUser.CreateDMChannelAsync(); // api10 doesnt grab the channel, it just does it lol
+        await dmChannel.SendMessageAsync($"You have been warned: {warnMessage}");
+    }
+    catch (Exception ex)
+    {
+        Log.Information($"Could not send DM to {warnUser.Username}: {ex.Message}");
+    }
+
+    // Respond in the command channel
+    await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
+    break;
+
+
 
                 case "clearwarns":
                     var clearWarnUser = (SocketUser)command.Data.Options.First().Value;
@@ -588,12 +606,53 @@ class Program
                     await command.RespondAsync($"Warnings for {clearWarnUser.Username} have been cleared.", ephemeral: true);
                     break;
 
-                case "setnickname":
-                    var nicknameUser = (SocketUser)command.Data.Options.First().Value;
-                    var nickname = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "";
-                    await SetNicknameAsync(nicknameUser, nickname);
-                    await command.RespondAsync($"User {nicknameUser.Username}'s nickname has been set to {nickname}.", ephemeral: true);
-                    break;
+case "setnickname":
+    try
+    {
+        // Ensure options are provided
+        if (command.Data.Options == null || !command.Data.Options.Any())
+        {
+            await command.RespondAsync("No user or nickname provided. Please specify a user and a nickname.", ephemeral: true);
+            return;
+        }
+
+        // Validate and retrieve user and nickname options
+        var nicknameUserOption = command.Data.Options.FirstOrDefault(o => o.Name == "user");
+        var nicknameOption = command.Data.Options.FirstOrDefault(o => o.Name == "nickname");
+
+        if (nicknameUserOption == null || nicknameOption == null)
+        {
+            await command.RespondAsync("Invalid arguments. Please provide both a user and a nickname.", ephemeral: true);
+            return;
+        }
+
+        var nicknameUser = nicknameUserOption.Value as SocketGuildUser;
+        var nickname = nicknameOption.Value?.ToString();
+
+        if (nicknameUser == null)
+        {
+            await command.RespondAsync("User not found in this guild. Please ensure the user exists.", ephemeral: true);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(nickname))
+        {
+            await command.RespondAsync("Please provide a valid nickname.", ephemeral: true);
+            return;
+        }
+
+        // Set nickname
+        await nicknameUser.ModifyAsync(u => u.Nickname = nickname);
+        await command.RespondAsync($"User {nicknameUser.Username}'s nickname has been set to {nickname}.", ephemeral: true);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error occurred while setting nickname.");
+        await command.RespondAsync("Failed to set the nickname. Ensure the bot has the necessary permissions.", ephemeral: true);
+    }
+    break;
+
+
 
                 case "lockdown":
                     await LockdownChannelAsync(command);
