@@ -23,6 +23,10 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using log4net.Plugin;
+using System;
+using System.Reflection;
+using Serilog;
+using System.Diagnostics;
 
 class Program
 {
@@ -86,34 +90,50 @@ class Program
         }
     };
 
-    static async Task Main(string[] args)
+  static async Task Main(string[] args)
+{
+    _client = new DiscordSocketClient();
+    _commands = new CommandService();
+    CheckAndCreateDirectories();
+
+   
+    var buildDate = GetBuildDate(Assembly.GetExecutingAssembly());
+    var author = "Ambiente + Retro";
+
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+            theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)  // Apply the cool ANSI theme
+        .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+        .Enrich.WithProperty("Application", "Blauer-Marlin-Bot")
+        .CreateLogger();
+
+    try
     {
-        _client = new DiscordSocketClient();
-        _commands = new CommandService();
-        CheckAndCreateDirectories();
-        
+        Log.Information("Bot starting...");
+        Log.Information($"Build Date: {buildDate}");
+        Log.Information($"Author: {author}");
 
-        // Initialize Serilog
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-
-        
-        try
-        {
-            Log.Information("Bot starting...");
-            await StartBotAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "An unhandled exception occurred during startup.");
-        }
-        finally
-        {
-            Log.CloseAndFlush();
-        }
+        await StartBotAsync();
     }
+    catch (Exception ex)
+    {
+        Log.Fatal(ex, "An unhandled exception occurred during startup.");
+    }
+    finally
+    {
+        Log.CloseAndFlush();
+    }
+}
+
+private static DateTime GetBuildDate(Assembly assembly)
+{
+    var filePath = assembly.Location;
+    var fileInfo = new FileInfo(filePath);
+    return fileInfo.LastWriteTime;  // Get the last write time from the file info
+}
+
 
     
 
