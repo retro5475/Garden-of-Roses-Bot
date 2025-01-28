@@ -1,21 +1,12 @@
 {
   "Version": 1,
-<<<<<<< HEAD
-  "WorkspaceRootPath": "C:\\Users\\rober\\source\\repos\\Blauer-Marlin-Bot\\",
-  "Documents": [],
-=======
   "WorkspaceRootPath": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\",
   "Documents": [
     {
       "AbsoluteMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|c:\\users\\shadow\\documents\\github\\blauer-marlin-bot\\blauer-marlin\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|solutionrelative:blauer-marlin\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|c:\\users\\shadow\\documents\\github\\blauer-marlin-bot\\blauer-marlin\\commands.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61DF363F-7071-410B-B937-47DCFA5F20FE}|Blauer-Marlin\\Blauer-Marlin.csproj|solutionrelative:blauer-marlin\\commands.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
->>>>>>> 1f3894019eb6561f08fb46d6e0196b2f6ed39597
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -23,11 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-<<<<<<< HEAD
-          "SelectedChildIndex": -1,
-=======
-          "SelectedChildIndex": 3,
->>>>>>> 1f3894019eb6561f08fb46d6e0196b2f6ed39597
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -36,21 +23,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{57d563b6-44a5-47df-85be-f4199ad6b651}"
-<<<<<<< HEAD
-=======
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "commands.cs",
-              "DocumentMoniker": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
-              "RelativeDocumentMoniker": "Blauer-Marlin\\commands.cs",
-              "ToolTip": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
-              "RelativeToolTip": "Blauer-Marlin\\commands.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAgwAoAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-23T15:27:36.911Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -60,11 +32,10 @@
               "RelativeDocumentMoniker": "Blauer-Marlin\\Program.cs",
               "ToolTip": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Program.cs",
               "RelativeToolTip": "Blauer-Marlin\\Program.cs",
-              "ViewState": "AgIAAE4BAAAAAAAAAAAYwF8BAAA0AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-22T16:30:43.374Z",
+              "WhenOpened": "2025-01-28T16:05:03.502Z",
               "EditorCaption": ""
->>>>>>> 1f3894019eb6561f08fb46d6e0196b2f6ed39597
             }
           ]
         }

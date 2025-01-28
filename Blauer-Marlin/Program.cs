@@ -160,7 +160,7 @@ private static DateTime GetBuildDate(Assembly assembly)
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("N/A");
 
-            var token = "MTMzMTcxMjU2MDY4NDIwODIzOQ.G4ydyX.jirNnSH_G6cxyubz6uXFLa6gncuKdYGp6HXDBk"; 
+            var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.GT3deu.3OUCkammp0iYcY6LuiH3X3OHB8aD_zWVIXCI0s"; 
             await _client.LoginAsync(TokenType.Bot, token);
             await PluginLoader.LoadAndExecutePluginsAsync(_client);
 
