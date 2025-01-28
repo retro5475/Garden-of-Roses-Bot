@@ -179,26 +179,45 @@ private static DateTime GetBuildDate(Assembly assembly)
         }
     }
 
-    private static async Task ReadyAsync()
+private static async Task ReadyAsync()
+{
+    try
     {
-        try
-        {
-            Log.Information("Bot is ready!");
-            LoadRegionPingStatus();
-            await _client.SetGameAsync("FFXIV Server Status");
-            Log.Information("Registering commands...");
+        Log.Information("Bot is ready!");
+        LoadRegionPingStatus();
+        await _client.SetGameAsync("FFXIV Server Status");
+        Log.Information("Registering commands...");
 
-            await commands.RegisterSlashCommands(_client);
-            var channelId = ulong.Parse("1331663013719048243");
-            _channel = (SocketTextChannel)_client.GetChannel(channelId);
-            _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
-            Log.Information("Ready event handled.");
-        }
-        catch (Exception ex)
+        await commands.RegisterSlashCommands(_client);
+
+        // Ensure channel retrieval is successful
+        var channelId = ulong.Parse("1331663013719048243");
+        var channel = _client.GetChannel(channelId) as SocketTextChannel;
+
+        if (channel == null)
         {
-            Log.Error(ex, "Error handling ReadyAsync.");
+            Log.Error("Failed to retrieve the channel. Please check the channel ID.");
+            return; // Exit early if the channel is invalid
         }
+
+        _channel = channel;
+
+        // Ensure the message is sent successfully
+        _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
+        if (_currentMessage == null)
+        {
+            Log.Error("Failed to send the initialization message.");
+            return; // Exit early if the message couldn't be sent
+        }
+
+        Log.Information("Ready event handled.");
     }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error handling ReadyAsync.");
+    }
+}
+
 
     private static Embed CreateEmbed(string description, Color? color = null)
     {
@@ -211,7 +230,7 @@ private static DateTime GetBuildDate(Assembly assembly)
             .Build();
     }
 
-  private static async Task PingServers(bool forceNewEmbed = false)
+private static async Task PingServers(bool forceNewEmbed = false)
 {
     try
     {
@@ -308,15 +327,17 @@ private static DateTime GetBuildDate(Assembly assembly)
             embed.AddField(region.Name, table, false);
         }
 
+        // Handling the message update or creation
         if (forceNewEmbed)
         {
-            // Delete the old message and send a new one
+            // Delete the old message if it exists
             if (_currentMessage != null)
             {
                 try
                 {
                     Log.Information("Deleting the old message.");
                     await _currentMessage.DeleteAsync();
+                    _currentMessage = null; // Reset the message reference to null after deletion
                 }
                 catch (Exception ex)
                 {
@@ -324,21 +345,68 @@ private static DateTime GetBuildDate(Assembly assembly)
                 }
             }
 
+            // Ensure the channel is not null
+            if (_channel == null)
+            {
+                Log.Error("Channel is null! Cannot send a message.");
+                return; // Exit early if channel is null
+            }
+
             Log.Information("Sending a new embed message.");
-            _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+            try
+            {
+                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error sending the new embed message.");
+            }
         }
         else
         {
             // Update the existing message if it exists
             if (_currentMessage != null)
             {
-                Log.Information("Modifying the existing embed message.");
-                await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
+                try
+                {
+                    Log.Information("Modifying the existing embed message.");
+                    await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Error modifying the existing message. Trying to send a new one.");
+                    
+                    // If modifying fails, reset _currentMessage and send a new one instead
+                    _currentMessage = null; // Reset the reference to null
+                    try
+                    {
+                        Log.Information("Sending a new embed message due to modification failure.");
+                        _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                    }
+                    catch (Exception retryEx)
+                    {
+                        Log.Error(retryEx, "Error sending the new embed message after modification failure.");
+                    }
+                }
             }
             else
             {
+                // If the message is null, send a new embed message
+                if (_channel == null)
+                {
+                    Log.Error("Channel is null! Cannot send a message.");
+                    return; // Exit early if channel is null
+                }
+
                 Log.Information("No existing message found, sending a new embed.");
-                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                try
+                {
+                    _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error sending the new embed message.");
+                }
             }
         }
     }
@@ -347,6 +415,8 @@ private static DateTime GetBuildDate(Assembly assembly)
         Log.Error(ex, "Error pinging servers.");
     }
 }
+
+
 
 
 
