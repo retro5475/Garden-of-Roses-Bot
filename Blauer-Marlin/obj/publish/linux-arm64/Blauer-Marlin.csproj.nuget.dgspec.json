@@ -1,0 +1,146 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+        "projectName": "Blauer-Marlin",
+        "projectPath": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+        "packagesPath": "C:\\Users\\Shadow\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\obj\\publish\\linux-arm64\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Shadow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "targetAlias": "net6.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "dependencies": {
+            "Discord.Net": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.Commands": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.Core": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.Interactions": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.Rest": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.WebSocket": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Discord.Net.Webhook": {
+              "target": "Package",
+              "version": "[3.17.1, )"
+            },
+            "Log4Net.Async": {
+              "target": "Package",
+              "version": "[2.0.4, )"
+            },
+            "Microsoft.CodeAnalysis.CSharp.Scripting": {
+              "target": "Package",
+              "version": "[4.12.0, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "Serilog": {
+              "target": "Package",
+              "version": "[4.2.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.linux-arm64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-arm64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.linux-arm64",
+              "version": "[6.0.36, 6.0.36]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "linux-arm64": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
