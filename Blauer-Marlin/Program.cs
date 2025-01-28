@@ -61,7 +61,8 @@ class Program
                 new ServerInfo { Name = "🌸Light: Raiden", IP = "80.239.145.95" },
                 new ServerInfo { Name = "🌸Light: Shiva", IP = "80.239.145.96" },
                 new ServerInfo { Name = "🌸Light: Twin", IP = "80.239.145.97" }
-                //new ServerInfo { Name = "🌸Light:   Zodi", IP = "80.239.145.90" }
+                //new ServerInfo { Name = "🌸Light:   Zodi", IP = "80.239.145.90" } //! Ding is, ich find die ip net :´D
+                
 
 
             }
@@ -190,123 +191,131 @@ class Program
             .Build();
     }
 
-    private static async Task PingServers()
+   private static async Task PingServers()
+{
+    try
     {
-        try
+        Log.Information("Pinging servers...");
+
+        var embed = new EmbedBuilder()
+            .WithTitle("FFXIV Server Status")
+            .WithColor(Color.Blue)
+            .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
+            .WithTimestamp(DateTimeOffset.Now);
+
+        Dictionary<string, bool> regionStatuses = new();
+        if (File.Exists(ConfigFilePath))
         {
-            Log.Information("Pinging servers...");
-
-            var embed = new EmbedBuilder()
-                .WithTitle("FFXIV Server Status")
-                .WithColor(Color.Blue)
-                .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
-                .WithTimestamp(DateTimeOffset.Now);
-
-            Dictionary<string, bool> regionStatuses = new();
-            if (File.Exists(ConfigFilePath))
+            try
             {
+                var json = File.ReadAllText(ConfigFilePath);
+                regionStatuses = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new Dictionary<string, bool>();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error reading the region status configuration file.");
+            }
+        }
+        else
+        {
+            Log.Warning($"Config file {ConfigFilePath} not found. Defaulting to active for all regions.");
+        }
+
+        // Build the embed fields for each region
+        foreach (var region in _regions)
+        {
+            if (!regionStatuses.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
+            {
+                Log.Information($"Skipping region {region.Name} (inactive).");
+                continue;
+            }
+
+            string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
+                           " --------------|-----------|------|-------\n";
+
+            foreach (var server in region.Servers)
+            {
+                string status, responseTime;
+                string statusEmoji;
+                string packetLoss = "0%";
+
+                int successfulPings = 0;
+                int totalPings = 5;
+
                 try
                 {
-                    var json = File.ReadAllText(ConfigFilePath);
-                    regionStatuses = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new Dictionary<string, bool>();
+                    for (int i = 0; i < totalPings; i++)
+                    {
+                        using var ping = new Ping();
+                        var reply = await ping.SendPingAsync(server.IP);
+
+                        if (reply.Status == IPStatus.Success)
+                        {
+                            successfulPings++;
+                        }
+                    }
+
+                    int loss = totalPings - successfulPings;
+                    packetLoss = loss > 0 ? $"{(loss * 100 / totalPings)}%" : "0%";
+
+                    using var lastPing = new Ping();
+                    var finalReply = await lastPing.SendPingAsync(server.IP);
+
+                    if (finalReply.Status == IPStatus.Success)
+                    {
+                        status = "Online";
+                        responseTime = finalReply.RoundtripTime.ToString();
+                        statusEmoji = "🟢";
+                    }
+                    else
+                    {
+                        status = "Offline";
+                        responseTime = "N/A";
+                        statusEmoji = "🔴";
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Error reading the region status configuration file.");
-                }
-            }
-            else
-            {
-                Log.Warning($"Config file {ConfigFilePath} not found. Defaulting to active for all regions.");
-            }
-
-            // Schleife über alle Regionen
-            foreach (var region in _regions)
-            {
-                // Region prüfen, ob sie in der Datei aktiv ist
-                if (!regionStatuses.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
-                {
-                    Log.Information($"Skipping region {region.Name} (inactive).");
-                    continue;
+                    status = "Error";
+                    responseTime = "N/A";
+                    statusEmoji = "⚪";
+                    Log.Error(ex, $"Error pinging server {server.Name} ({server.IP}).");
                 }
 
-                string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
-                               " --------------|-----------|------|-------\n";
-
-                foreach (var server in region.Servers)
-                {
-                    string status, responseTime;
-                    string statusEmoji;
-                    string packetLoss = "0%";  // Default packet loss
-
-                    int successfulPings = 0;
-                    int totalPings = 5;  // Number of pings to test for packet loss
-
-                    try
-                    {
-                        for (int i = 0; i < totalPings; i++)
-                        {
-                            using var ping = new Ping();
-                            var reply = await ping.SendPingAsync(server.IP);
-
-                            if (reply.Status == IPStatus.Success)
-                            {
-                                successfulPings++;
-                            }
-                        }
-
-                        // Calculate packet loss as percentage
-                        int loss = totalPings - successfulPings;
-                        packetLoss = (loss > 0) ? $"{(loss * 100 / totalPings)}%" : "0%";
-
-                        // Ping last time for roundtrip time
-                        using var lastPing = new Ping();
-                        var finalReply = await lastPing.SendPingAsync(server.IP);
-
-                        if (finalReply.Status == IPStatus.Success)
-                        {
-                            status = "Online";
-                            responseTime = finalReply.RoundtripTime.ToString();
-                            statusEmoji = "🟢"; // Green circle for online
-                        }
-                        else
-                        {
-                            status = "Offline";
-                            responseTime = "N/A";
-                            statusEmoji = "🔴"; // Red circle for offline
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        status = "Error";
-                        responseTime = "N/A";
-                        statusEmoji = "⚪"; // White circle for error
-                        Log.Error(ex, $"Error pinging server {server.Name} ({server.IP}).");
-                    }
-
-                    table += $"{server.Name.PadRight(15)}| {responseTime.PadLeft(5)} ms  | {packetLoss.PadLeft(5)}| {status} {statusEmoji}\n";
-                }
-
-                table += "```";
-                embed.AddField(region.Name, table, false);
+                table += $"{server.Name.PadRight(15)}| {responseTime.PadLeft(5)} ms  | {packetLoss.PadLeft(5)}| {status} {statusEmoji}\n";
             }
 
-            if (_currentMessage != null)
-            {
-                Log.Information("Modifying current message with new embed.");
-                await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
-            }
-            else
-            {
-                Log.Information("Sending new message with embed.");
-                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
-            }
+            table += "```";
+            embed.AddField(region.Name, table, false);
         }
-        catch (Exception ex)
+
+        if (_currentMessage != null)
         {
-            Log.Error(ex, "Error pinging servers.");
+            try
+            {
+                var fetchedMessage = await _channel.GetMessageAsync(_currentMessage.Id);
+                if (fetchedMessage != null)
+                {
+                    Log.Information("Modifying current message with new embed.");
+                    await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "The current message could not be found. A new one will be sent.");
+            }
         }
+
+        Log.Information("Sending new message with embed.");
+        _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
     }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error pinging servers.");
+    }
+}
+
 
 
 
