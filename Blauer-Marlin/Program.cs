@@ -191,7 +191,7 @@ class Program
             .Build();
     }
 
-   private static async Task PingServers()
+  private static async Task PingServers(bool forceNewEmbed = false)
 {
     try
     {
@@ -221,7 +221,6 @@ class Program
             Log.Warning($"Config file {ConfigFilePath} not found. Defaulting to active for all regions.");
         }
 
-        // Build the embed fields for each region
         foreach (var region in _regions)
         {
             if (!regionStatuses.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
@@ -289,32 +288,46 @@ class Program
             embed.AddField(region.Name, table, false);
         }
 
-        if (_currentMessage != null)
+        if (forceNewEmbed)
         {
-            try
+            // Delete the old message and send a new one
+            if (_currentMessage != null)
             {
-                var fetchedMessage = await _channel.GetMessageAsync(_currentMessage.Id);
-                if (fetchedMessage != null)
+                try
                 {
-                    Log.Information("Modifying current message with new embed.");
-                    await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
-                    return;
+                    Log.Information("Deleting the old message.");
+                    await _currentMessage.DeleteAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to delete the old message.");
                 }
             }
-            catch (Exception ex)
+
+            Log.Information("Sending a new embed message.");
+            _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+        }
+        else
+        {
+            // Update the existing message if it exists
+            if (_currentMessage != null)
             {
-                Log.Warning(ex, "The current message could not be found. A new one will be sent.");
+                Log.Information("Modifying the existing embed message.");
+                await _currentMessage.ModifyAsync(msg => msg.Embed = embed.Build());
+            }
+            else
+            {
+                Log.Information("No existing message found, sending a new embed.");
+                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
             }
         }
-
-        Log.Information("Sending new message with embed.");
-        _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
     }
     catch (Exception ex)
     {
         Log.Error(ex, "Error pinging servers.");
     }
 }
+
 
 
 
@@ -525,11 +538,12 @@ class Program
                     await command.RespondAsync(embed: CreateEmbed(statusMessage, Color.Blue));
                     break;
 
-                case "reload":
-                    Log.Information("Reloading server status...");
-                    await PingServers();
-                    await command.RespondAsync("Server status reloaded.", ephemeral: true);
-                    break;
+            case "reload": //! How this works now is, setting an flag of the reload *forcenewembed* true, so we get an new embed!
+                 Log.Information("Reloading server status...");
+                 await PingServers(forceNewEmbed: true);
+                 await command.RespondAsync("Server status reloaded. The old embed has been deleted, and a new one has been sent.", ephemeral: true);
+                 break;
+
 
                 case "europe":
                 case "usa":
