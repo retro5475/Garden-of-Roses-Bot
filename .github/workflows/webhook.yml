@@ -1,0 +1,10 @@
+name: Webhook Trigger
+
+on: [push]  # Automatisch senden, wenn Code gepusht wird
+
+jobs:
+  send_webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Webhook senden
+        run: curl -X POST "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1" -H "Content-Type: application/json" -d '{"event": "push", "repo": "${{ github.repository }}"}'
