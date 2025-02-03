@@ -22,6 +22,18 @@ internal class commands //! maybe make this static in future, to prevent memoryb
             var commands = new List<SlashCommandBuilder>
             {
                 new SlashCommandBuilder().WithName("help").WithDescription("Shows a list of available commands."),
+
+
+
+                //For my baby ambi
+
+                new SlashCommandBuilder().WithName("setchannel").WithDescription("Admin Command"),
+
+
+
+
+
+
                 new SlashCommandBuilder().WithName("status").WithDescription("Displays the current status of all regions."),
                 new SlashCommandBuilder().WithName("reload").WithDescription("Reloads the server status."),
                 new SlashCommandBuilder().WithName("europe").WithDescription("Toggles Europe server ping."),

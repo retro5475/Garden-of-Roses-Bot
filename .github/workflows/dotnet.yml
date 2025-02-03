@@ -1,28 +1,81 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
-
+  send_webhook:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Webhook senden
+        run: |
+          # Ensure the latest commit data is available
+          git fetch --prune --unshallow
+          
+          # Get the changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          
+          # Get the timestamp
+          TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+          
+          # Extract the branch name
+          BRANCH=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          
+          # Get the user and repository
+          USER="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          
+          # Create the embed payload
+          curl -X POST "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "embeds": [
+                    {
+                      "title": "Push Event in Repository: '"$REPO"'",
+                      "color": 3066993,
+                      "fields": [
+                        {
+                          "name": "Branch",
+                          "value": "'"$BRANCH"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "User",
+                          "value": "'"$USER"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "Date and Time",
+                          "value": "'"$TIMESTAMP"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "Changed Files",
+                          "value": "'"$CHANGED_FILES"'",
+                          "inline": false
+                        }
+                      ]
+                    }
+                  ]
+                }'
+  
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
