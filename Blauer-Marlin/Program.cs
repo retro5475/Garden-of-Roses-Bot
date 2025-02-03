@@ -41,7 +41,7 @@ class Program
 
     private static readonly string ConfigFilePath = "files/regionPingStatus.json";
 
-    private static readonly List<RegionInfo> _regions = new List<RegionInfo>
+    private static readonly List<RegionInfo> _regions = new List<RegionInfo>  //! ToDo use Constants!
     {
         new RegionInfo
         {
