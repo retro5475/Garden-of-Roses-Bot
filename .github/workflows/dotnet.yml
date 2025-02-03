@@ -10,11 +10,31 @@ jobs:
   send_webhook:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
       - name: Webhook senden
         run: |
+          # Ensure the latest commit data is available
+          git fetch --prune --unshallow
+          
+          # Get the changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          
+          # Get the timestamp
+          TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+          
+          # Extract the branch name
+          BRANCH=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          
+          # Get the user and repository
+          USER="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          
+          # Send the webhook to Discord
           curl -X POST "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1" \
             -H "Content-Type: application/json" \
-            -d '{"event": "push", "repo": "${{ github.repository }}"}'
+            -d "{\"content\": \"Push event in repository: $REPO\\nBranch: $BRANCH\\nUser: $USER\\nDate and Time: $TIMESTAMP\\nChanged Files:\\n$CHANGED_FILES\"}"
 
   build:
     runs-on: ubuntu-latest
