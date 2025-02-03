@@ -31,11 +31,40 @@ jobs:
           USER="${{ github.actor }}"
           REPO="${{ github.repository }}"
           
-          # Send the webhook to Discord
+          # Create the embed payload
           curl -X POST "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1" \
             -H "Content-Type: application/json" \
-            -d "{\"content\": \"Push event in repository: $REPO\\nBranch: $BRANCH\\nUser: $USER\\nDate and Time: $TIMESTAMP\\nChanged Files:\\n$CHANGED_FILES\"}"
-
+            -d '{
+                  "embeds": [
+                    {
+                      "title": "Push Event in Repository: '"$REPO"'",
+                      "color": 3066993,
+                      "fields": [
+                        {
+                          "name": "Branch",
+                          "value": "'"$BRANCH"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "User",
+                          "value": "'"$USER"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "Date and Time",
+                          "value": "'"$TIMESTAMP"'",
+                          "inline": true
+                        },
+                        {
+                          "name": "Changed Files",
+                          "value": "'"$CHANGED_FILES"'",
+                          "inline": false
+                        }
+                      ]
+                    }
+                  ]
+                }'
+  
   build:
     runs-on: ubuntu-latest
     steps:
