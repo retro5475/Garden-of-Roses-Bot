@@ -714,24 +714,43 @@ case "unmute":
     await command.RespondAsync($"User {unmuteUser.Username} has been unmuted.", ephemeral: true);
     break;
 
-case "warn":
-    var warnUser = (SocketUser)command.Data.Options.First().Value;
-    var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
+    case "warn":
 
-    await WarnUserAsync(warnUser, warnMessage);
+var warnUser = (SocketUser)command.Data.Options.First().Value;
+var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
 
-    try
+await WarnUserAsync(warnUser, warnMessage);
+
+try
+{
+    var dmChannel = await warnUser.CreateDMChannelAsync();
+    await dmChannel.SendMessageAsync($"You have been warned: {warnMessage}");
+}
+catch (Exception ex)
+{
+    Log.Information($"Could not send DM to {warnUser.Username}: {ex.Message}");
+}
+
+// Send the warning message to a specific channel
+if (command.Channel is IGuildChannel guildChannel)
+{
+    var guild = guildChannel.Guild;
+    var warnChannel = await guild.GetTextChannelAsync(1318285896029573153);
+    
+    if (warnChannel != null)
     {
-        var dmChannel = await warnUser.CreateDMChannelAsync();
-        await dmChannel.SendMessageAsync($"You have been warned: {warnMessage}");
+        await warnChannel.SendMessageAsync($"{warnUser.Mention} has been warned for: {warnMessage}");
     }
-    catch (Exception ex)
+    else
     {
-        Log.Information($"Could not send DM to {warnUser.Username}: {ex.Message}");
+        Log.Warning("Warning channel not found.");
     }
+}
 
-    await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
-    break;
+await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
+break;
+
+
 
 case "clearwarns":
     var clearWarnUser = (SocketUser)command.Data.Options.First().Value;
