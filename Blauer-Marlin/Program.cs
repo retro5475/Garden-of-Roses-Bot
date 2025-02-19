@@ -487,12 +487,6 @@ private static async Task PingServers(bool forceNewEmbed = false)
 }
 
 
-
-
-
-
-
-
     static void CheckAndCreateDirectories()
     {
         if (!Directory.Exists("files"))
