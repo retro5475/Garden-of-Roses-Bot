@@ -161,7 +161,7 @@ private static DateTime GetBuildDate(Assembly assembly)
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("N/A");
 
-            var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.GT3deu.3OUCkammp0iYcY6LuiH3X3OHB8aD_zWVIXCI0s"; 
+            var token = "//place your botkey here"; 
             await _client.LoginAsync(TokenType.Bot, token);
             await PluginLoader.LoadAndExecutePluginsAsync(_client);
 
