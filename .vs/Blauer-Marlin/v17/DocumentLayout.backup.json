@@ -18,7 +18,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,28 +30,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "commands.cs",
-              "DocumentMoniker": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
-              "RelativeDocumentMoniker": "Blauer-Marlin\\commands.cs",
-              "ToolTip": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
-              "RelativeToolTip": "Blauer-Marlin\\commands.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAgwB0AAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-28T17:16:18.189Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Program.cs",
               "RelativeDocumentMoniker": "Blauer-Marlin\\Program.cs",
               "ToolTip": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Program.cs",
               "RelativeToolTip": "Blauer-Marlin\\Program.cs",
-              "ViewState": "AgIAAB0DAAAAAAAAAAAAACsDAAAgAAAAAAAAAA==",
+              "ViewState": "AgIAABoAAAAAAAAAAAAYwCoAAABRAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-01-28T16:05:03.502Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "commands.cs",
+              "DocumentMoniker": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
+              "RelativeDocumentMoniker": "Blauer-Marlin\\commands.cs",
+              "ToolTip": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\commands.cs",
+              "RelativeToolTip": "Blauer-Marlin\\commands.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAgwB0AAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-28T17:16:18.189Z",
               "EditorCaption": ""
             }
           ]
