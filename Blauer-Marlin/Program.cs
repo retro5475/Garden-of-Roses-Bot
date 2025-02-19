@@ -132,7 +132,7 @@ private static DateTime GetBuildDate(Assembly assembly)
 {
     var filePath = assembly.Location;
     var fileInfo = new FileInfo(filePath);
-    return fileInfo.LastWriteTime;  // Get the last write time from the file info
+    return fileInfo.LastWriteTime;  
 }
 
 
@@ -167,7 +167,7 @@ private static DateTime GetBuildDate(Assembly assembly)
 
             await _client.StartAsync();
 
-            _timer = new Timer(60000); // 1 Minute
+            _timer = new Timer(60000);
             _timer.Elapsed += async (sender, e) => await PingServers();
             _timer.Start();
 
@@ -180,75 +180,82 @@ private static DateTime GetBuildDate(Assembly assembly)
         }
     }
 
-    private static async Task ReadyAsync()
+
+
+private static async Task ReadyAsync()
+{
+    try
     {
-        try
+        Log.Information("Bot is ready!");
+        LoadRegionPingStatus();
+        await _client.SetGameAsync("FFXIV Server Status");
+        Log.Information("Registering commands...");
+
+        await commands.RegisterSlashCommands(_client);
+
+        // Load Channel-ID from config
+        ulong channelId = await LoadChannelConfigAsync();
+        if (channelId == 0)
         {
-            Log.Information("Bot is ready!");
-            LoadRegionPingStatus();
-            await _client.SetGameAsync("FFXIV Server Status");
-            Log.Information("Registering commands...");
-
-            await commands.RegisterSlashCommands(_client);
-
-            // Channel-ID aus der Konfigurationsdatei laden
-            ulong channelId = 0;
-
-            if (File.Exists(ConfigFilePathConfig))
-            {
-                try
-                {
-                    var json = await File.ReadAllTextAsync(ConfigFilePathConfig);
-                    var configData = JsonSerializer.Deserialize<Dictionary<string, ulong>>(json);
-
-                    if (configData != null && configData.TryGetValue("channelId", out var savedChannelId))
-                    {
-                        channelId = savedChannelId;
-                    }
-                    else
-                    {
-                        Log.Error("Channel-ID konnte nicht aus der Konfiguration gelesen werden. Bitte setze die ID mit dem entsprechenden Command.");
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Fehler beim Lesen der Channel-Konfigurationsdatei.");
-                    return;
-                }
-            }
-            else
-            {
-                Log.Error($"Konfigurationsdatei '{ConfigFilePathConfig}' nicht gefunden. Bitte erstelle die Datei oder setze den Channel mit dem entsprechenden Command.");
-                return;
-            }
-
-            // Hole den Channel aus der geladenen ID
-            var channel = _client.GetChannel(channelId) as SocketTextChannel;
-
-            if (channel == null)
-            {
-                Log.Error($"Der gespeicherte Channel (ID: {channelId}) konnte nicht gefunden werden. Bitte überprüfe die Channel-ID in der Konfigurationsdatei.");
-                return;
-            }
-
-            _channel = channel;
-
-            // Initialisiere die Embed-Nachricht
-            _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
-            if (_currentMessage == null)
-            {
-                Log.Error("Fehler beim Senden der Initialisierungsnachricht.");
-                return;
-            }
-
-            Log.Information("Ready event handled.");
+            Log.Error("Channel-ID nicht gefunden. Bitte setze den Channel mit /setchannel.");
+            return;
         }
-        catch (Exception ex)
+
+        // Get the channel from the loaded ID
+        var channel = _client.GetChannel(channelId) as SocketTextChannel;
+        if (channel == null)
         {
-            Log.Error(ex, "Fehler beim Verarbeiten von ReadyAsync.");
+            Log.Error($"Der gespeicherte Channel (ID: {channelId}) konnte nicht gefunden werden.");
+            return;
+        }
+
+        _channel = channel;
+
+        // Send initialization message
+        _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
+        if (_currentMessage == null)
+        {
+            Log.Error("Fehler beim Senden der Initialisierungsnachricht.");
+            return;
+        }
+
+        Log.Information("Ready event handled.");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Fehler beim Verarbeiten von ReadyAsync.");
+    }
+}
+
+private static async Task<ulong> LoadChannelConfigAsync()
+{
+    if (!File.Exists(ConfigFilePathConfig))
+    {
+        Log.Error($"Config-Datei '{ConfigFilePathConfig}' nicht gefunden.");
+        return 0;
+    }
+
+    try
+    {
+        var json = await File.ReadAllTextAsync(ConfigFilePathConfig);
+        var configData = JsonSerializer.Deserialize<Dictionary<string, ulong>>(json);
+
+        if (configData != null && configData.TryGetValue("channelId", out var savedChannelId))
+        {
+            return savedChannelId;
+        }
+        else
+        {
+            Log.Error("Channel-ID fehlt oder ist ungültig in der Konfigurationsdatei.");
         }
     }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Fehler beim Lesen der Channel-Konfigurationsdatei.");
+    }
+
+    return 0;
+}
 
 
     private static Embed CreateEmbed(string description, Color? color = null)
@@ -262,11 +269,56 @@ private static DateTime GetBuildDate(Assembly assembly)
             .Build();
     }
 
+    private static async Task<SocketTextChannel?> GetSavedChannelAsync()
+{
+    if (!File.Exists(ConfigFilePathConfig))
+    {
+        Log.Error($"Config-Datei '{ConfigFilePathConfig}' nicht gefunden.");
+        return null;
+    }
+
+    try
+    {
+        var json = await File.ReadAllTextAsync(ConfigFilePathConfig);
+        var configData = JsonSerializer.Deserialize<Dictionary<string, ulong>>(json);
+
+        if (configData != null && configData.TryGetValue("channelId", out var channelId))
+        {
+            var channel = _client.GetChannel(channelId) as SocketTextChannel;
+            if (channel == null)
+            {
+                Log.Error($"Der gespeicherte Channel (ID: {channelId}) konnte nicht gefunden werden.");
+                return null;
+            }
+            return channel;
+        }
+        else
+        {
+            Log.Error("Channel-ID fehlt oder ist ungültig in der Konfigurationsdatei.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Fehler beim Laden der Channel-Konfigurationsdatei.");
+    }
+
+    return null;
+}
+
+
 private static async Task PingServers(bool forceNewEmbed = false)
 {
     try
     {
         Log.Information("Pinging servers...");
+
+        // Ensure we load the correct channel before sending
+        var channel = await GetSavedChannelAsync();
+        if (channel == null)
+        {
+            Log.Error("Kein gültiger Channel gefunden. Bitte setze den Channel mit /setchannel.");
+            return;
+        }
 
         var embed = new EmbedBuilder()
             .WithTitle("FFXIV Server Status")
@@ -301,7 +353,7 @@ private static async Task PingServers(bool forceNewEmbed = false)
             }
 
             string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
-                           " --------------|-----------|------|-------\n";
+                           "--------------|-----------|------|-------\n";
 
             foreach (var server in region.Servers)
             {
@@ -377,17 +429,10 @@ private static async Task PingServers(bool forceNewEmbed = false)
                 }
             }
 
-            // Ensure the channel is not null
-            if (_channel == null)
-            {
-                Log.Error("Channel is null! Cannot send a message.");
-                return; // Exit early if channel is null
-            }
-
             Log.Information("Sending a new embed message.");
             try
             {
-                _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                _currentMessage = await channel.SendMessageAsync(embed: embed.Build());
             }
             catch (Exception ex)
             {
@@ -413,7 +458,7 @@ private static async Task PingServers(bool forceNewEmbed = false)
                     try
                     {
                         Log.Information("Sending a new embed message due to modification failure.");
-                        _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                        _currentMessage = await channel.SendMessageAsync(embed: embed.Build());
                     }
                     catch (Exception retryEx)
                     {
@@ -423,17 +468,10 @@ private static async Task PingServers(bool forceNewEmbed = false)
             }
             else
             {
-                // If the message is null, send a new embed message
-                if (_channel == null)
-                {
-                    Log.Error("Channel is null! Cannot send a message.");
-                    return; // Exit early if channel is null
-                }
-
                 Log.Information("No existing message found, sending a new embed.");
                 try
                 {
-                    _currentMessage = await _channel.SendMessageAsync(embed: embed.Build());
+                    _currentMessage = await channel.SendMessageAsync(embed: embed.Build());
                 }
                 catch (Exception ex)
                 {
@@ -447,6 +485,7 @@ private static async Task PingServers(bool forceNewEmbed = false)
         Log.Error(ex, "Error pinging servers.");
     }
 }
+
 
 
 
@@ -828,27 +867,28 @@ case "clear":
     await ClearMessagesAsync(command, clearCount);
     await command.RespondAsync($"Cleared {clearCount} messages.", ephemeral: true);
     break;
-                case "setchannel":
-                    var selectedChannel = command.Data.Options.First().Value as SocketTextChannel;
+case "setchannel":
+    if (command.Data.Options.FirstOrDefault(x => x.Name == "channel")?.Value is SocketTextChannel selectedChannel)
+    {
+        try
+        {
+            // Speichere die Kanal-ID in der JSON-Datei
+            await SaveChannelConfigAsync(selectedChannel.Id);
 
-                    if (selectedChannel != null)
-                    {
-                        try
-                        {
-                            // Speichere die Channel-ID
-                            SaveChannelConfig(selectedChannel.Id);
-                            await command.RespondAsync($"Der Channel wurde erfolgreich auf {selectedChannel.Name} gesetzt.", ephemeral: true);
-                        }
-                        catch (Exception ex)
-                        {
-                            await command.RespondAsync($"Fehler beim Speichern des Channels: {ex.Message}", ephemeral: true);
-                        }
-                    }
-                    else
-                    {
-                        await command.RespondAsync("Fehler: Der ausgewählte Channel ist kein Textkanal oder ungültig.", ephemeral: true);
-                    }
-                    break;
+            await command.RespondAsync($"Der Kanal wurde erfolgreich auf {selectedChannel.Mention} gesetzt.", ephemeral: true);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Fehler beim Speichern des Kanals.");
+            await command.RespondAsync($"Fehler beim Speichern des Kanals: {ex.Message}", ephemeral: true);
+        }
+    }
+    else
+    {
+        await command.RespondAsync("Fehler: Bitte wähle einen gültigen Textkanal.", ephemeral: true);
+    }
+    break;
+
 
 
 
@@ -1040,27 +1080,23 @@ private static async Task RemoveRoleFromUserAsync(SocketUser user, SocketRole ro
         }
     }
 
-    private static void SaveChannelConfig(ulong channelId)
+   private static async Task SaveChannelConfigAsync(ulong channelId)
+{
+    try
     {
-        try
-        {
-            Log.Information("Saving channel configuration...");
-            var configData = new Dictionary<string, ulong>
-        {
-            { "channelId", channelId }
-        };
+        var configData = new Dictionary<string, ulong> { { "channelId", channelId } };
+        var json = JsonSerializer.Serialize(configData, new JsonSerializerOptions { WriteIndented = true });
 
-            var json = JsonSerializer.Serialize(configData, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ConfigFilePathConfig, json);
-            Log.Information("Channel configuration saved.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error saving channel configuration.");
-        }
+        await File.WriteAllTextAsync(ConfigFilePathConfig, json);
+        Log.Information($"Channel-ID {channelId} gespeichert.");
     }
-
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Fehler beim Speichern der Channel-ID.");
+    }
 }
+}
+
 
 public class ServerInfo
 {

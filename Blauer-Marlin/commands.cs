@@ -27,7 +27,14 @@ internal class commands //! maybe make this static in future, to prevent memoryb
 
                 //For my baby ambi
 
-                new SlashCommandBuilder().WithName("setchannel").WithDescription("Admin Command"),
+                new SlashCommandBuilder()
+        .WithName("setchannel")
+        .WithDescription("Wähle einen Textkanal für Nachrichten")
+        .AddOption(new SlashCommandOptionBuilder()
+            .WithName("channel")
+            .WithDescription("Wähle einen Textkanal")
+            .WithRequired(true)
+            .WithType(ApplicationCommandOptionType.Channel)),
 
 
 
