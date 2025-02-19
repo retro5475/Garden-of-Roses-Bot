@@ -1,0 +1,68 @@
+name: .NET
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  send_webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Send Webhook to Discord
+        env:
+          DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1"
+        run: |
+          # Sicherstellen, dass die Commit-Daten verfügbar sind
+          git fetch --prune --unshallow || true
+          
+          # Geänderte Dateien ermitteln
+          CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          
+          # Anzahl der geänderten Dateien zählen
+          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo 0)
+          if [ "$FILE_COUNT" -le 2 ]; then
+            echo "Weniger als oder genau 2 Dateien geändert. Webhook wird nicht gesendet."
+            exit 0
+          fi
+
+          # Zeitstempel und weitere Infos
+          TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          USER="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+
+          # Geänderte Dateien als lesbare Liste formatieren
+          FORMATTED_FILES=$(echo "$CHANGED_FILES" | awk '{printf "- %s\n", $0}')
+
+          # Payload vorbereiten
+          PAYLOAD=$(jq -n \
+            --arg title "Push Event in Repository: $REPO" \
+            --arg branch "$BRANCH" \
+            --arg user "$USER" \
+            --arg timestamp "$TIMESTAMP" \
+            --arg changed_files "$FORMATTED_FILES" \
+            '{
+              "embeds": [
+                {
+                  "title": $title,
+                  "color": 3066993,
+                  "fields": [
+                    {"name": "Branch", "value": $branch, "inline": true},
+                    {"name": "User", "value": $user, "inline": true},
+                    {"name": "Date and Time", "value": $timestamp, "inline": true},
+                    {"name": "Changed Files", "value": $changed_files, "inline": false}
+                  ]
+                }
+              ]
+            }'
+          )
+
+          # Webhook an Discord senden
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
