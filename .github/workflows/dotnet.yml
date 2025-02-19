@@ -13,26 +13,31 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Webhook senden
+      - name: Send Webhook to Discord
+        env:
+          DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1"
         run: |
           # Ensure the latest commit data is available
-          git fetch --prune --unshallow
+          git fetch --prune --unshallow || true
           
           # Get the changed files
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
           
-          # Get the timestamp
+          # Check if more than two files changed
+          FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+          if [ "$FILE_COUNT" -le 2 ]; then
+            echo "Less than or equal to 2 files changed. Skipping webhook."
+            exit 0
+          fi
+
+          # Prepare data
           TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-          
-          # Extract the branch name
-          BRANCH=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
-          
-          # Get the user and repository
+          BRANCH="${GITHUB_REF#refs/heads/}"
           USER="${{ github.actor }}"
           REPO="${{ github.repository }}"
-          
-          # Create the embed payload
-          curl -X POST "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1" \
+
+          # Send Discord webhook
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{
                   "embeds": [
@@ -40,26 +45,10 @@ jobs:
                       "title": "Push Event in Repository: '"$REPO"'",
                       "color": 3066993,
                       "fields": [
-                        {
-                          "name": "Branch",
-                          "value": "'"$BRANCH"'",
-                          "inline": true
-                        },
-                        {
-                          "name": "User",
-                          "value": "'"$USER"'",
-                          "inline": true
-                        },
-                        {
-                          "name": "Date and Time",
-                          "value": "'"$TIMESTAMP"'",
-                          "inline": true
-                        },
-                        {
-                          "name": "Changed Files",
-                          "value": "'"$CHANGED_FILES"'",
-                          "inline": false
-                        }
+                        { "name": "Branch", "value": "'"$BRANCH"'", "inline": true },
+                        { "name": "User", "value": "'"$USER"'", "inline": true },
+                        { "name": "Date and Time", "value": "'"$TIMESTAMP"'", "inline": true },
+                        { "name": "Changed Files", "value": "'"$(echo "$CHANGED_FILES" | tr '\n' ', ')"'", "inline": false }
                       ]
                     }
                   ]
