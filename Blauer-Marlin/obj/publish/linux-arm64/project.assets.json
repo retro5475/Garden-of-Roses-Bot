@@ -3044,23 +3044,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Shadow\\.nuget\\packages\\": {},
+    "C:\\Users\\User\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+      "projectUniqueName": "C:\\Users\\User\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
       "projectName": "Blauer-Marlin",
-      "projectPath": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
-      "packagesPath": "C:\\Users\\Shadow\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Shadow\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\obj\\publish\\linux-arm64\\",
+      "projectPath": "C:\\Users\\User\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\User\\Documents\\GitHub\\Blauer-Marlin-Bot\\Blauer-Marlin\\obj\\publish\\linux-arm64\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Shadow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3069,6 +3069,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3085,9 +3086,9 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "all"
+        "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net6.0": {
@@ -3176,7 +3177,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200\\RuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {
@@ -3186,17 +3187,6 @@
     }
   },
   "logs": [
-    {
-      "code": "NU1904",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Das Paket \"log4net\" 2.0.3 weist eine bekannte Kritisch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-2cwj-8chv-9pp9.",
-      "libraryId": "log4net",
-      "targetGraphs": [
-        "net6.0",
-        "net6.0/linux-arm64"
-      ]
-    },
     {
       "code": "NU1701",
       "level": "Warning",
