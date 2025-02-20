@@ -23,13 +23,6 @@ jobs:
           # Geänderte Dateien ermitteln
           CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
           
-          # Anzahl der geänderten Dateien zählen
-          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo 0)
-          if [ "$FILE_COUNT" -le 2 ]; then
-            echo "Weniger als oder genau 2 Dateien geändert. Webhook wird nicht gesendet."
-            exit 0
-          fi
-
           # Zeitstempel und weitere Infos
           TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
           BRANCH="${GITHUB_REF#refs/heads/}"
