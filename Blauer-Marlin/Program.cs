@@ -158,10 +158,10 @@ private static DateTime GetBuildDate(Assembly assembly)
             _client.Ready += ReadyAsync;
             _client.SlashCommandExecuted += HandleSlashCommandAsync;
 
-            await _client.SetStatusAsync(UserStatus.DoNotDisturb);
+            await _client.SetStatusAsync(UserStatus.Online);
             await _client.SetGameAsync("N/A");
 
-            var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.GT3deu.3OUCkammp0iYcY6LuiH3X3OHB8aD_zWVIXCI0s"; 
+            var token = "xxx"; 
             await _client.LoginAsync(TokenType.Bot, token);
             await PluginLoader.LoadAndExecutePluginsAsync(_client);
 
@@ -188,9 +188,11 @@ private static async Task ReadyAsync()
     {
         Log.Information("Bot is ready!");
         LoadRegionPingStatus();
-        await _client.SetGameAsync("FFXIV Server Status");
-        Log.Information("Registering commands...");
+        
+        // Start rotating statuses
+        _ = Task.Run(RotateStatuses);
 
+        Log.Information("Registering commands...");
         await commands.RegisterSlashCommands(_client);
 
         // Load Channel-ID from config
@@ -226,6 +228,137 @@ private static async Task ReadyAsync()
         Log.Error(ex, "Fehler beim Verarbeiten von ReadyAsync.");
     }
 }
+
+
+private static async Task RotateStatuses()
+{
+var statuses = new List<string>
+{
+    "Clearing Ultimates (in my dreams)",
+    "Wiping to mechanics since 2013",
+    "Waiting for Duty Finder to pop...",
+    "ERPing in Limsa—just kidding (or am I?)",
+    "Rolling Need on everything",
+    "Savage prog: 0.1% wipe",
+    "Trying to dodge AOEs... unsuccessfully",
+    "Glamour is the true endgame",
+    "Still can't clear P12S...",
+    "Housing Savage, 10 minutes remain!",
+    "Tank privilege activated",
+    "Looking for a static... again",
+    "One more Treasure Map... (copium)",
+    "Mentor status but doesn't know mechanics",
+    "Hunting A-rank marks like a madman",
+    "Fishing in the Diadem for no reason",
+    "Getting kicked from Party Finder",
+    "Selling fake Ultimate carries",
+    "Waiting for Island Sanctuary updates",
+    "Relic grind pain intensifies",
+    "Looking for FC buffs (again)",
+    "Checking Market Board profits",
+    "Running Expert Roulette for tomes",
+    "AFK in Limsa like a true adventurer",
+    "Pulling before the tank (oops)",
+    "Spamming 'Dodge!' in chat",
+    "My retainer made more gil than me",
+    "Farming minions like a true collector",
+    "Raiding with 200 ping, send help",
+    "I am once again asking for healer LB3",
+    "Glamour dresser is full (again)",
+    "My relic weapon isn't glowing enough",
+    "Aggro? Never heard of it",
+    "Why do I have 200 unread hunt linkshell messages?",
+    "Learning mechanics AFTER the pull",
+    "Still mad about my 98 losing to a 99",
+    "DPS parsing in casual content",
+    "I just wanted to craft in peace...",
+    "Tank forgot tank stance again",
+    "Selling my soul for gil",
+    "When in doubt, blame the healer",
+    "Watching my co-healer 'DPS only'",
+    "My parse was orange, I swear!",
+    "What is this, a wipe?",
+    "Waiting for my FC to log in",
+    "Avoiding main scenario roulette",
+    "Got kicked for watching cutscenes",
+    "Playing 'dodge the AoE'... and failing",
+    "Still trying to find a house plot",
+    "Please, just let me buy a medium house",
+    "Dying to Wall Boss in The Vault",
+    "Titan, we meet again...",
+    "Who needs a healer when you have pots?",
+    "Oh no, I pulled the boss early",
+    "Wiping to Cape Westwind (somehow)",
+    "Where is my V&C dungeon portal?!",
+    "I should be studying, but FFXIV",
+    "Stuck in Gold in CC forever",
+    "Waiting for my Raid Leader to come back",
+    "Just one more dungeon, I swear...",
+    "Why is this crafting macro so slow?",
+    "Roulettes, roulettes, roulettes...",
+    "Dying because I forgot Sprint exists",
+    "My chocobo is tanking better than me",
+    "I just queued for Castrum. Send help.",
+    "This boss music is fire though",
+    "Why does my tank have 5 vulnerability stacks?",
+    "Main tanking in leveling roulette = pain",
+    "I rolled a 1. Again.",
+    "Another party finder disaster...",
+    "Please, stop standing in bad",
+    "My static is arguing over loot again",
+    "This Duty Finder queue is taking years",
+    "Is it a DPS check, or a skill issue?",
+    "Getting carried through alliance raids",
+    "Lost all my gil on the Jumbo Cactpot",
+    "Pulling extra mobs... sorry healer!",
+    "Another 'Oops! All Tanks' party",
+    "Healers adjust!",
+    "That was the pull timer, not the countdown!",
+    "Taking my mandatory post-wipe stretch",
+    "Tanking without tank stance? Bold.",
+    "Oh look, my co-healer is AFK...",
+    "I know the mechanics, I swear!",
+    "This is a stack marker, right?",
+    "I can solo this boss (famous last words)",
+    "Limit Break 3 or wipe? Decisions...",
+    "So... about that enrage timer...",
+    "I forgot to repair before the raid",
+    "30 minutes in and no healer LB3...",
+    "Still stuck on the Nier raid...",
+    "Mechs are easier when dead, right?",
+    "When in doubt, blame the ping",
+    "This PF group is actually good?!",
+    "Dying to Leviathan knockback (again)",
+    "Trusts don't judge my mistakes...",
+    "Did someone say 'one last pull'?",
+    "PVP for the wolf marks, not the wins",
+    "I love my static (most of the time)",
+    "Pressing buttons and hoping for the best",
+    "Why does my DPS keep running away?",
+    "That was totally lag, I swear",
+    "My retainers are richer than me",
+    "One more fate for my relic...",
+    "So this is how we farm tomestones",
+    "Expert roulette? More like pain roulette",
+    "Help, I'm stuck in Haurchefant fan club",
+    "I have 5 crafts at 90, and I still buy HQ mats",
+    "Does anyone even know how to do this mechanic?",
+    "Waiting for 8.XX content like...",
+    "Still need my Triple Triad mount...",
+    "Roulettes first, responsibilities later",
+    "Do I *really* need another mount?",
+    "When does the expansion drop again?!"
+};
+
+
+    while (true)
+    {
+        var randomStatus = statuses[new Random().Next(statuses.Count)];
+        await _client.SetGameAsync(randomStatus);
+        await Task.Delay(TimeSpan.FromMinutes(2));
+    }
+}
+
 
 private static async Task<ulong> LoadChannelConfigAsync()
 {
@@ -632,56 +765,33 @@ private static async Task PingServers(bool forceNewEmbed = false)
 
             switch (command.CommandName)
             {
-                case "help":
-                    Log.Information("User requested help.");
-                    await command.RespondAsync(embed: CreateEmbed("Available commands:\n\n" +
-                        "`/europe` - Toggles Europe server ping.\n" +
-                        "`/usa` - Toggles North America server ping.\n" +
-                        "`/japan` - Toggles Japan server ping.\n" +
-                        "`/status` - Displays the current ping status.\n" +
-                        "`/reload` - Reloads server status.\n" +
-                        "`/ban` - Bans a user.\n" +
-                        "`/unban` - Unbans a user.\n" +
-                        "`/kick` - Kicks a user.\n" +
-                        "`/mute` - Mutes a user.\n" +
-                        "`/unmute` - Unmutes a user.\n" +
-                        "`/warn` - Warns a user.\n" +
-                        "`/clearwarns` - Clears a user's warnings.\n" +
-                        "`/userinfo` - Displays user information.\n" +
-                        "`/setnickname` - Sets a user's nickname.\n" +
-                        "`/lockdown` - Locks the channel temporarily.\n" +
-                        "`/unlock` - Unlocks the channel.\n" +
-                        "`/addrole` - Adds a role to a user.\n" +
-                        "`/removerole` - Removes a role from a user.\n" +
-                        "`/mutechannel` - Mutes a channel.\n" +
-                        "`/unmutechannel` - Unmutes a channel.\n" +
-                        "`/slowmode` - Sets a slow mode on a channel.\n" +
-                        "`/announce` - Sends an announcement.\n" +
-                        "`/setprefix` - Sets a custom prefix.\n" +
-                        "`/clear` - Clears messages in a channel.\n" +
-                        "`/purge` - Purges messages older than a certain time.\n" +
-                        "`/filter` - Set up a word filter.\n" +
-                        "`/showwarns` - Shows warnings for a user.\n" +
-                        "`/clearallwarns` - Clears all warnings from the server.\n" +
-                        "`/banlist` - Displays the ban list.\n" +
-                        "`/tempmute` - Temporarily mutes a user.\n" +
-                        "`/tempban` - Temporarily bans a user.\n" +
-                        "`/tempkick` - Temporarily kicks a user.\n" +
-                        "`/setwelcome` - Sets a welcome message.\n" +
-                        "`/setgoodbye` - Sets a goodbye message.\n" +
-                        "`/toggleprefix` - Toggles the prefix feature.\n" +
-                        "`/addreaction` - Adds a reaction to a message.\n" +
-                        "`/clearreactions` - Clears reactions from a message.\n" +
-                        "`/suspend` - Suspends a user from chatting.\n" +
-                        "`/rejoin` - Allows a suspended user to rejoin the chat.\n" +
-                        "`/serverinfo` - Displays server information.\n" +
-                        "`/poll` - Creates a poll.\n" +
-                        "`/setautomod` - Sets up an automated moderation system.\n" +
-                        "`/cleanchannels` - Deletes unused channels.\n" +
-                        "`/setlogchannel` - Sets a channel for logs.\n" +
-                        "`/purgeuser` - Purges messages from a specific user.\n", Color.Green));
-                    break;
-            
+case "help":
+    Log.Information("User requested help.");
+    await command.RespondAsync(embed: CreateEmbed("Available commands:\n\n" +
+        "`/europe` - Toggles Europe server ping.\n" +
+        "`/usa` - Toggles North America server ping.\n" +
+        "`/japan` - Toggles Japan server ping.\n" +
+        "`/status` - Displays the current ping status.\n" +
+        "`/reload` - Reloads server status.\n" +
+        "`/ban` - Bans a user.\n" +
+        "`/unban` - Unbans a user.\n" +
+        "`/kick` - Kicks a user.\n" +
+        "`/mute` - Mutes a user.\n" +
+        "`/unmute` - Unmutes a user.\n" +
+        "`/warn` - Warns a user and sends a DM with details.\n" +
+        "`/clearwarns` - Clears warnings for a user.\n" +
+        "`/userinfo` - Displays user information.\n" +
+        "`/setnickname` - Sets a user's nickname.\n" +
+        "`/lockdown` - Locks the channel temporarily.\n" +
+        "`/unlock` - Unlocks the channel.\n" +
+        "`/addrole` - Adds a role to a user.\n" +
+        "`/removerole` - Removes a role from a user.\n" +
+        "`/slowmode` - Sets a slow mode on a channel.\n" +
+        "`/announce` - Sends an announcement to a chosen channel.\n" +
+        "`/setprefix` - Sets a custom prefix.\n" +
+        "`/clear` - Clears messages in a channel.\n", Color.Green));
+    break;
+
 
 
                      case "status":
@@ -747,42 +857,78 @@ case "unmute":
     await command.RespondAsync($"User {unmuteUser.Username} has been unmuted.", ephemeral: true);
     break;
 
-    case "warn":
+ case "warn":
+    var warnUser = (SocketUser)command.Data.Options.First(o => o.Name == "user").Value;
+    var warnReason = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
 
-var warnUser = (SocketUser)command.Data.Options.First().Value;
-var warnMessage = command.Data.Options.Count > 1 ? command.Data.Options.ElementAt(1).Value.ToString() : "No reason provided";
+    // Fetch the user who issued the warning
+    var issuer = command.User;
 
-await WarnUserAsync(warnUser, warnMessage);
-
-try
-{
-    var dmChannel = await warnUser.CreateDMChannelAsync();
-    await dmChannel.SendMessageAsync($"You have been warned: {warnMessage}");
-}
-catch (Exception ex)
-{
-    Log.Information($"Could not send DM to {warnUser.Username}: {ex.Message}");
-}
-
-// Send the warning message to a specific channel
-if (command.Channel is IGuildChannel guildChannel)
-{
-    var guild = guildChannel.Guild;
-    var warnChannel = await guild.GetTextChannelAsync(1318285896029573153);
-    
-    if (warnChannel != null)
+    // Send DM to the warned user
+    try
     {
-        await warnChannel.SendMessageAsync($"{warnUser.Mention} has been warned for: {warnMessage}");
+        var warnDmChannel = await warnUser.CreateDMChannelAsync();
+        await warnDmChannel.SendMessageAsync($"⚠ **You have been warned!** ⚠\n\n" +
+                                             $"**Reason:** {warnReason}\n" +
+                                             $"If you believe this is a mistake, contact a moderator.");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning($"Could not send DM to {warnUser.Username}: {ex.Message}");
+    }
+
+    // Send a copy of the warning to the issuer
+    try
+    {
+        var issuerDmChannel = await issuer.CreateDMChannelAsync();
+        var warneduserInfo = $"**Username:** {warnUser.Username}#{warnUser.Discriminator}\n" +
+                       $"**User ID:** {warnUser.Id}\n" +
+                       $"**Account Created:** {warnUser.CreatedAt.UtcDateTime} UTC\n";
+
+        await issuerDmChannel.SendMessageAsync($"✅ **Warning Issued Successfully**\n\n" +
+                                               $"You have warned {warnUser.Mention}.\n\n" +
+                                               $"{warneduserInfo}\n" +
+                                               $"**Reason:** {warnReason}");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning($"Could not send DM to {issuer.Username}: {ex.Message}");
+    }
+
+    // Acknowledge the command execution
+    await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnReason}", ephemeral: true);
+    break;
+
+
+case "userinfo":
+    var userInfo = (SocketUser)command.Data.Options.First().Value;
+    var userEmbed = new EmbedBuilder()
+        .WithTitle($"{userInfo.Username}'s Info")
+        .WithThumbnailUrl(userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl())
+        .AddField("User ID", userInfo.Id, true)
+        .AddField("Username", userInfo.Username, true)
+        .AddField("Discriminator", userInfo.Discriminator, true)
+        .AddField("Created At", userInfo.CreatedAt.ToString("g"), true)
+        .WithColor(Color.Blue)
+        .Build();
+
+    await command.RespondAsync(embed: userEmbed);
+    break;
+
+case "announce":
+    var announceChannel = (SocketTextChannel)command.Data.Options.First(o => o.Name == "channel").Value;
+    var announceMessage = (string)command.Data.Options.First(o => o.Name == "message").Value;
+
+    if (announceChannel != null)
+    {
+        await announceChannel.SendMessageAsync($"📢 Announcement: {announceMessage}");
+        await command.RespondAsync($"Announcement sent to {announceChannel.Mention} successfully.", ephemeral: true);
     }
     else
     {
-        Log.Warning("Warning channel not found.");
+        await command.RespondAsync("Error: Specified channel not found.", ephemeral: true);
     }
-}
-
-await command.RespondAsync($"User {warnUser.Username} has been warned for: {warnMessage}", ephemeral: true);
-break;
-
+    break;
 
 
 case "clearwarns":
