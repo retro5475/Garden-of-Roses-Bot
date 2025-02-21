@@ -168,7 +168,15 @@ private static DateTime GetBuildDate(Assembly assembly)
             await _client.StartAsync();
 
             _timer = new Timer(60000);
-            _timer.Elapsed += async (sender, e) => await PingServers();
+           _timer.Elapsed += async (sender, e) =>
+            {
+    if (_client.Guilds.Count > 0)
+    {
+        ulong guildId = _client.Guilds.First().Id;
+        await PingServers(guildId, false);
+    }
+};
+
             _timer.Start();
 
             Log.Information("Bot started. Waiting for commands...");
@@ -402,7 +410,7 @@ private static async Task<ulong> LoadChannelConfigAsync()
             .Build();
     }
 
-    private static async Task<SocketTextChannel?> GetSavedChannelAsync()
+    private static async Task<SocketTextChannel?> GetSavedChannelAsync(DiscordSocketClient client, ulong guildId)
 {
     if (!File.Exists(ConfigFilePathConfig))
     {
@@ -413,11 +421,11 @@ private static async Task<ulong> LoadChannelConfigAsync()
     try
     {
         var json = await File.ReadAllTextAsync(ConfigFilePathConfig);
-        var configData = JsonSerializer.Deserialize<Dictionary<string, ulong>>(json);
+        var configData = JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json);
 
-        if (configData != null && configData.TryGetValue("channelId", out var channelId))
+        if (configData != null && configData.TryGetValue(guildId, out var channelId))
         {
-            var channel = _client.GetChannel(channelId) as SocketTextChannel;
+            var channel = client.GetChannel(channelId) as SocketTextChannel;
             if (channel == null)
             {
                 Log.Error($"Der gespeicherte Channel (ID: {channelId}) konnte nicht gefunden werden.");
@@ -427,7 +435,7 @@ private static async Task<ulong> LoadChannelConfigAsync()
         }
         else
         {
-            Log.Error("Channel-ID fehlt oder ist ungültig in der Konfigurationsdatei.");
+            Log.Error($"Keine gespeicherte Channel-ID für Guild {guildId} gefunden.");
         }
     }
     catch (Exception ex)
@@ -439,14 +447,16 @@ private static async Task<ulong> LoadChannelConfigAsync()
 }
 
 
-private static async Task PingServers(bool forceNewEmbed = false)
+
+private static async Task PingServers(ulong guildId, bool forceNewEmbed = false)
 {
     try
     {
         Log.Information("Pinging servers...");
+       
+       var channel = await GetSavedChannelAsync(_client, guildId);
 
-        // Ensure we load the correct channel before sending
-        var channel = await GetSavedChannelAsync();
+
         if (channel == null)
         {
             Log.Error("Kein gültiger Channel gefunden. Bitte setze den Channel mit /setchannel.");
@@ -805,11 +815,12 @@ case "help":
                     await command.RespondAsync(embed: CreateEmbed(statusMessage, Color.Blue));
                     break;
 
-            case "reload": //! How this works now is, setting an flag of the reload *forcenewembed* true, so we get an new embed!
-                 Log.Information("Reloading server status...");
-                 await PingServers(forceNewEmbed: true);
-                 await command.RespondAsync("Server status reloaded. The old embed has been deleted, and a new one has been sent.", ephemeral: true);
-                 break;
+           case "reload":
+    Log.Information("Reloading server status...");
+    await PingServers(command.GuildId.Value, forceNewEmbed: true);
+    await command.RespondAsync("Server status reloaded. The old embed has been deleted, and a new one has been sent.", ephemeral: true);
+    break;
+
 
 
                 case "europe":
@@ -1008,12 +1019,20 @@ case "clear":
     await command.RespondAsync($"Cleared {clearCount} messages.", ephemeral: true);
     break;
 case "setchannel":
+    if (command.GuildId == null)
+    {
+        await command.RespondAsync("Dieser Befehl kann nur in einem Server verwendet werden.", ephemeral: true);
+        break;
+    }
+
     if (command.Data.Options.FirstOrDefault(x => x.Name == "channel")?.Value is SocketTextChannel selectedChannel)
     {
         try
         {
-            // Speichere die Kanal-ID in der JSON-Datei
-            await SaveChannelConfigAsync(selectedChannel.Id);
+           ulong guildId = command.GuildId.Value;
+
+            // Save the channel ID associated with the guild ID
+            await SaveChannelConfigAsync(guildId, selectedChannel.Id);
 
             await command.RespondAsync($"Der Kanal wurde erfolgreich auf {selectedChannel.Mention} gesetzt.", ephemeral: true);
         }
@@ -1028,6 +1047,7 @@ case "setchannel":
         await command.RespondAsync("Fehler: Bitte wähle einen gültigen Textkanal.", ephemeral: true);
     }
     break;
+
 
 
 
@@ -1220,21 +1240,25 @@ private static async Task RemoveRoleFromUserAsync(SocketUser user, SocketRole ro
         }
     }
 
-   private static async Task SaveChannelConfigAsync(ulong channelId)
-{
-    try
-    {
-        var configData = new Dictionary<string, ulong> { { "channelId", channelId } };
-        var json = JsonSerializer.Serialize(configData, new JsonSerializerOptions { WriteIndented = true });
 
-        await File.WriteAllTextAsync(ConfigFilePathConfig, json);
-        Log.Information($"Channel-ID {channelId} gespeichert.");
-    }
-    catch (Exception ex)
+
+private static async Task SaveChannelConfigAsync(ulong guildId, ulong channelId)
+{
+    Dictionary<ulong, ulong> channelConfig = new();
+
+    // Load existing config if file exists
+    if (File.Exists(ConfigFilePath))
     {
-        Log.Error(ex, "Fehler beim Speichern der Channel-ID.");
+        string json = await File.ReadAllTextAsync(ConfigFilePath);
+        channelConfig = JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json) ?? new();
     }
-}
+
+    // Update the guild’s channel setting
+    channelConfig[guildId] = channelId;
+
+    // Save back to file
+    string updatedJson = JsonSerializer.Serialize(channelConfig, new JsonSerializerOptions { WriteIndented = true });
+    await File.WriteAllTextAsync(ConfigFilePath, updatedJson);
 }
 
 
@@ -1248,4 +1272,6 @@ public class RegionInfo
 {
     public string? Name { get; set; }
     public List<ServerInfo> Servers { get; set; } = new List<ServerInfo>();
+}
+
 }
