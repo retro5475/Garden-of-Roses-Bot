@@ -461,7 +461,7 @@ private static async Task PingServers(ulong guildId, bool forceNewEmbed = false)
 
             if (channel == null)
         {
-            Log.Error("Kein gültiger Channel gefunden. Bitte setze den Channel mit /setchannel.");
+            //Log.Error("Kein gültiger Channel gefunden. Bitte setze den Channel mit /setchannel.");
             //return;
         }
 
