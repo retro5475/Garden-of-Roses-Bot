@@ -453,14 +453,16 @@ private static async Task PingServers(ulong guildId, bool forceNewEmbed = false)
     try
     {
         Log.Information("Pinging servers...");
-       
-       var channel = await GetSavedChannelAsync(_client, guildId);
+
+            ulong channelId = 1333472217165594684;
+            var channel = _client.GetChannel(channelId) as IMessageChannel;
 
 
-        if (channel == null)
+
+            if (channel == null)
         {
             Log.Error("Kein gültiger Channel gefunden. Bitte setze den Channel mit /setchannel.");
-            return;
+            //return;
         }
 
         var embed = new EmbedBuilder()
