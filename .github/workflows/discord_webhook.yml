@@ -2,7 +2,7 @@ name: .NET
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main"] # Oder entferne das, um alle Branches zu erfassen
   pull_request:
     branches: ["main"]
 
@@ -12,27 +12,36 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # WICHTIG: Holt alle Commits
 
       - name: Send Webhook to Discord
         env:
           DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/1336057220126867496/AOYd9hxIECZVKDycMQZ_mrNLfWDmQcfQwSXUqH8mAugNwKaKeC0wqL72VCUI9MDnGbt1"
         run: |
-          # Sicherstellen, dass die Commit-Daten verfügbar sind
-          git fetch --prune --unshallow || true
-          
+          # Fallback, falls kein "before"-SHA vorhanden ist
+          BEFORE_SHA="${{ github.event.before }}"
+          if [ -z "$BEFORE_SHA" ]; then
+            BEFORE_SHA=$(git rev-list --max-parents=0 HEAD)
+          fi
+
           # Geänderte Dateien ermitteln
-          CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          
-          # Zeitstempel und weitere Infos
+          CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "${{ github.sha }}")
+
+          # Zeitstempel und Infos
           TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
           BRANCH="${GITHUB_REF#refs/heads/}"
           USER="${{ github.actor }}"
           REPO="${{ github.repository }}"
 
-          # Geänderte Dateien als lesbare Liste formatieren
-          FORMATTED_FILES=$(echo "$CHANGED_FILES" | awk '{printf "- %s\n", $0}')
+          # Dateien formatieren oder Platzhalter setzen
+          if [ -z "$CHANGED_FILES" ]; then
+            FORMATTED_FILES="Keine Änderungen gefunden."
+          else
+            FORMATTED_FILES=$(echo "$CHANGED_FILES" | awk '{printf "- %s\n", $0}')
+          fi
 
-          # Payload vorbereiten
+          # JSON Payload
           PAYLOAD=$(jq -n \
             --arg title "Push Event in Repository: $REPO" \
             --arg branch "$BRANCH" \
@@ -55,7 +64,7 @@ jobs:
             }'
           )
 
-          # Webhook an Discord senden
+          # Webhook senden
           curl -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD"
