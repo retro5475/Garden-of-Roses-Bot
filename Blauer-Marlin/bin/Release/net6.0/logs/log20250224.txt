@@ -1,0 +1,66 @@
+2025-02-24 01:40:51.871 +01:00 [INF] Bot starting...
+2025-02-24 01:40:52.222 +01:00 [INF] Build Date: 24.02.2025 01:40:40
+2025-02-24 01:40:52.222 +01:00 [INF] Author: Ambiente + Retro
+2025-02-24 01:40:52.297 +01:00 [INF] Starting the bot...
+2025-02-24 01:40:52.391 +01:00 [INF] Discord Log: 01:40:52 Discord     Discord.Net v3.17.1 (API v10)
+2025-02-24 01:40:52.667 +01:00 [INF] Discord Log: 01:40:52 Discord     A supplied token was invalid.:
+System.ArgumentException: A Bot token must be at least 58 characters in length. Ensure that the Bot Token provided is not an OAuth client secret. (Parameter 'token')
+   at Discord.TokenUtils.ValidateToken(TokenType tokenType, String token)
+   at Discord.Rest.BaseDiscordClient.LoginInternalAsync(TokenType tokenType, String token, Boolean validateToken)
+2025-02-24 01:40:52.921 +01:00 [INF] Bot started. Waiting for commands...
+2025-02-24 01:40:52.944 +01:00 [INF] Discord Log: 01:40:52 Gateway     Connecting
+2025-02-24 01:40:55.217 +01:00 [INF] Discord Log: 01:40:55 Gateway     Discord.Net.HttpException: The server responded with error 401: 401: Unauthorized
+   at Discord.Net.Queue.RequestBucket.SendAsync(RestRequest request)
+   at Discord.Net.Queue.RequestQueue.SendAsync(RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendInternalAsync(String method, String endpoint, RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendAsync[TResponse](String method, String endpoint, BucketId bucketId, ClientBucketType clientBucket, RequestOptions options)
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectAsync()
+   at Discord.WebSocket.DiscordSocketClient.OnConnectingAsync()
+   at Discord.ConnectionManager.ConnectAsync(CancellationTokenSource reconnectCancelToken)
+   at Discord.ConnectionManager.<>c__DisplayClass29_0.<<StartAsync>b__0>d.MoveNext()
+2025-02-24 01:40:55.226 +01:00 [INF] Discord Log: 01:40:55 Gateway     Disconnecting
+2025-02-24 01:40:55.278 +01:00 [INF] Discord Log: 01:40:55 Gateway     Disconnected
+2025-02-24 01:40:56.293 +01:00 [INF] Discord Log: 01:40:56 Gateway     Connecting
+2025-02-24 01:40:56.465 +01:00 [INF] Discord Log: 01:40:56 Gateway     Discord.Net.HttpException: The server responded with error 401: 401: Unauthorized
+   at Discord.Net.Queue.RequestBucket.SendAsync(RestRequest request)
+   at Discord.Net.Queue.RequestQueue.SendAsync(RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendInternalAsync(String method, String endpoint, RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendAsync[TResponse](String method, String endpoint, BucketId bucketId, ClientBucketType clientBucket, RequestOptions options)
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectAsync()
+   at Discord.WebSocket.DiscordSocketClient.OnConnectingAsync()
+   at Discord.ConnectionManager.ConnectAsync(CancellationTokenSource reconnectCancelToken)
+   at Discord.ConnectionManager.<>c__DisplayClass29_0.<<StartAsync>b__0>d.MoveNext()
+2025-02-24 01:40:56.465 +01:00 [INF] Discord Log: 01:40:56 Gateway     Disconnecting
+2025-02-24 01:40:56.465 +01:00 [INF] Discord Log: 01:40:56 Gateway     Disconnected
+2025-02-24 01:40:58.728 +01:00 [INF] Discord Log: 01:40:58 Gateway     Connecting
+2025-02-24 01:40:58.884 +01:00 [INF] Discord Log: 01:40:58 Gateway     Discord.Net.HttpException: The server responded with error 401: 401: Unauthorized
+   at Discord.Net.Queue.RequestBucket.SendAsync(RestRequest request)
+   at Discord.Net.Queue.RequestQueue.SendAsync(RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendInternalAsync(String method, String endpoint, RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendAsync[TResponse](String method, String endpoint, BucketId bucketId, ClientBucketType clientBucket, RequestOptions options)
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectAsync()
+   at Discord.WebSocket.DiscordSocketClient.OnConnectingAsync()
+   at Discord.ConnectionManager.ConnectAsync(CancellationTokenSource reconnectCancelToken)
+   at Discord.ConnectionManager.<>c__DisplayClass29_0.<<StartAsync>b__0>d.MoveNext()
+2025-02-24 01:40:58.884 +01:00 [INF] Discord Log: 01:40:58 Gateway     Disconnecting
+2025-02-24 01:40:58.884 +01:00 [INF] Discord Log: 01:40:58 Gateway     Disconnected
+2025-02-24 01:41:03.514 +01:00 [INF] Discord Log: 01:41:03 Gateway     Connecting
+2025-02-24 01:41:03.670 +01:00 [INF] Discord Log: 01:41:03 Gateway     Discord.Net.HttpException: The server responded with error 401: 401: Unauthorized
+   at Discord.Net.Queue.RequestBucket.SendAsync(RestRequest request)
+   at Discord.Net.Queue.RequestQueue.SendAsync(RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendInternalAsync(String method, String endpoint, RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendAsync[TResponse](String method, String endpoint, BucketId bucketId, ClientBucketType clientBucket, RequestOptions options)
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectInternalAsync()
+   at Discord.API.DiscordSocketApiClient.ConnectAsync()
+   at Discord.WebSocket.DiscordSocketClient.OnConnectingAsync()
+   at Discord.ConnectionManager.ConnectAsync(CancellationTokenSource reconnectCancelToken)
+   at Discord.ConnectionManager.<>c__DisplayClass29_0.<<StartAsync>b__0>d.MoveNext()
+2025-02-24 01:41:03.670 +01:00 [INF] Discord Log: 01:41:03 Gateway     Disconnecting
+2025-02-24 01:41:03.671 +01:00 [INF] Discord Log: 01:41:03 Gateway     Disconnected

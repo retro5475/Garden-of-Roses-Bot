@@ -146,7 +146,7 @@ private static async Task ReadyAsync()
         StatusManager.StartRotatingStatus(_client);
 
         Log.Information("Registering commands...");
-       await _commands.RegisterSlashCommands(_client);
+       await commands.RegisterSlashCommands(_client);
 
 
         ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;

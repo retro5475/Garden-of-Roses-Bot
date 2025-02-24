@@ -77,7 +77,8 @@ using Serilog;
             }
         }
 
-        private static async Task<string> GetRegionPingTable(Region region)
+        private static async Task<string> GetRegionPingTable(RegionInfo region) // ✅ Correct
+
         {
             string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
                            "--------------|-----------|------|-------\n";
