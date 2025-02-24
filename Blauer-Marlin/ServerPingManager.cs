@@ -55,27 +55,43 @@ using Serilog;
             }
         }
 
-        private static Dictionary<string, bool> LoadRegionStatuses()
+       private static Dictionary<string, bool> LoadRegionStatuses()
+{
+    string configPath = "regionPingStatus.json"; // Ensure this path is correct
+
+    if (!File.Exists(configPath))
+    {
+        Log.Warning($"Config file {configPath} not found. Creating a new one with default values.");
+
+        // Initialize with all regions active by default
+        var defaultStatuses = RegionData.Regions.ToDictionary(region => region.Name.ToLower(), _ => true);
+
+        try
         {
-            string configPath = "regionconfig.json"; // Ensure this path is correct
-
-            if (!File.Exists(configPath))
-            {
-                Log.Warning($"Config file {configPath} not found. Defaulting to active for all regions.");
-                return new Dictionary<string, bool>();
-            }
-
-            try
-            {
-                var json = File.ReadAllText(configPath);
-                return JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new Dictionary<string, bool>();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error reading the region status configuration file.");
-                return new Dictionary<string, bool>();
-            }
+            var json = JsonSerializer.Serialize(defaultStatuses, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(configPath, json);
+            Log.Information($"New region status configuration file created at {configPath}.");
         }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error creating the region status configuration file.");
+        }
+
+        return defaultStatuses; // Return the newly created defaults
+    }
+
+    try
+    {
+        var json = File.ReadAllText(configPath);
+        return JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new Dictionary<string, bool>();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error reading the region status configuration file.");
+        return new Dictionary<string, bool>(); // Return empty if file is corrupted
+    }
+}
+
 
         private static async Task<string> GetRegionPingTable(RegionInfo region) // ✅ Correct
 
