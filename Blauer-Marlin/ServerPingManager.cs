@@ -15,9 +15,6 @@ public static class ServerPingManager
     
     private static string GetConfigPath(ulong guildId) => $"regionPingStatus_{guildId}.json";
 
-    /// <summary>
-    /// Pings servers and updates the embed message for each guild.
-    /// </summary>
     public static async Task PingServersAsync(DiscordSocketClient client, ulong guildId, bool forceNewEmbed = false)
     {
         try
@@ -66,9 +63,6 @@ public static class ServerPingManager
         }
     }
 
-    /// <summary>
-    /// Loads or creates the region ping status configuration file for a specific guild.
-    /// </summary>
     private static Dictionary<string, bool> LoadRegionStatuses(ulong guildId)
     {
         string configPath = GetConfigPath(guildId);
@@ -105,9 +99,66 @@ public static class ServerPingManager
         }
     }
 
-    /// <summary>
-    /// Sends or updates the embed message with server status for a specific guild.
-    /// </summary>
+    private static async Task<string> GetRegionPingTable(RegionInfo region)
+    {
+        Log.Information($"Generating ping table for {region.Name}...");
+
+            string table = "```\nServer         | Ping (ms) | Loss | Status\n" +
+                       "--------------|-----------|------|-------\n";
+
+        foreach (var server in region.Servers)
+        {
+            var (status, responseTime, packetLoss, statusEmoji) = await PingServerAsync(server.IP);
+            table += $"{server.Name.PadRight(15)}| {responseTime.PadLeft(5)} ms  | {packetLoss.PadLeft(5)}| {status} {statusEmoji}\n";
+        }
+
+        return table + "```";
+    
+    }
+
+    private static async Task<(string status, string responseTime, string packetLoss, string statusEmoji)> PingServerAsync(string serverIp)
+    {
+        Log.Information($"Pinging server {serverIp}...");
+
+        int successfulPings = 0;
+        int totalPings = 5;
+        string packetLoss = "0%";
+
+        try
+        {
+            for (int i = 0; i < totalPings; i++)
+            {
+                using var ping = new Ping();
+                var reply = await ping.SendPingAsync(serverIp);
+
+                if (reply.Status == IPStatus.Success)
+                    successfulPings++;
+            }
+
+            int loss = totalPings - successfulPings;
+            packetLoss = loss > 0 ? $"{(loss * 100 / totalPings)}%" : "0%";
+
+            using var lastPing = new Ping();
+            var finalReply = await lastPing.SendPingAsync(serverIp);
+
+            if (finalReply.Status == IPStatus.Success)
+            {
+                Log.Information($"Server {serverIp} is ONLINE with {finalReply.RoundtripTime} ms response time.");
+                return ("Online", finalReply.RoundtripTime.ToString(), packetLoss, "🟢");
+            }
+            else
+            {
+                Log.Warning($"Server {serverIp} is OFFLINE.");
+                return ("Offline", "N/A", packetLoss, "🔴");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Error pinging server {serverIp}.");
+            return ("Error", "N/A", packetLoss, "⚪");
+        }
+    }
+
     private static async Task SendOrUpdateEmbed(ISocketMessageChannel channel, ulong guildId, EmbedBuilder embed, bool forceNewEmbed)
     {
         try
@@ -139,15 +190,6 @@ public static class ServerPingManager
         catch (Exception ex)
         {
             Log.Error(ex, $"Error updating the embed message for guild {guildId}.");
-            try
-            {
-                Log.Information($"Retrying by sending a new embed message for guild {guildId}.");
-                _currentMessages[guildId] = await channel.SendMessageAsync(embed: embed.Build());
-            }
-            catch (Exception retryEx)
-            {
-                Log.Error(retryEx, $"Error sending the new embed message after modification failure for guild {guildId}.");
-            }
         }
     }
 }
