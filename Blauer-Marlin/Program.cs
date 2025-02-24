@@ -21,7 +21,7 @@ class Program
     private static SocketTextChannel _channel;
     private static CommandService _commands;
     private static IServiceProvider _services;
-    private static Timer _timer;
+    private static System.Timers.Timer _timer;
     private static IUserMessage _currentMessage;
     private static Dictionary<string, bool> _regionPingStatus;
 
@@ -33,7 +33,6 @@ class Program
     _client = new DiscordSocketClient();
     _commands = new CommandService();
     CheckAndCreateDirectories();
-
    
     var buildDate = GetBuildDate(Assembly.GetExecutingAssembly());
     var author = "Ambiente + Retro";
@@ -103,9 +102,8 @@ private static async Task StartBotAsync()
 
         await _client.StartAsync();
 
-        _timer = new Timer(60000);
-       
-        _timer = new Timer(60000);
+        _timer = new System.Timers.Timer(60000);
+
         _timer.Elapsed += async (sender, e) =>
         {
             try
@@ -597,7 +595,7 @@ case "setchannel":
             ulong guildId = command.GuildId.Value;
 
             // Use the manager to save the channel!!!!
-            await ChannelConfigManager.SaveChannelAsync(guildId, selectedChannel.Id);
+            await ChannelConfigManager.SaveChannelConfigAsync(guildId, selectedChannel.Id);
 
             await command.RespondAsync($"Der Kanal wurde erfolgreich auf {selectedChannel.Mention} gesetzt.", ephemeral: true);
         }
@@ -757,7 +755,6 @@ private static async Task RemoveRoleFromUserAsync(SocketUser user, SocketRole ro
         Log.Information($"Role {role.Name} removed from {user.Username}.");
     }
 } 
-
 
 
 
