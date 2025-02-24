@@ -9,8 +9,7 @@ using Discord;
 using Discord.WebSocket;
 using Serilog;
 
-namespace Blauer_Marlin.Properties
-{
+
     public static class ServerPingManager
     {
         private static IUserMessage? _currentMessage;
@@ -37,7 +36,7 @@ namespace Blauer_Marlin.Properties
 
                 Dictionary<string, bool> regionStatuses = LoadRegionStatuses();
 
-                foreach (var region in RegionData.GetRegions()) // Ensure RegionData is correctly implemented
+                foreach (var region in RegionData.Regions) // Ensure RegionData is correctly implemented
                 {
                     if (!regionStatuses.TryGetValue(region.Name.ToLower(), out var isActive) || !isActive)
                     {
@@ -176,4 +175,4 @@ namespace Blauer_Marlin.Properties
             }
         }
     }
-}
+

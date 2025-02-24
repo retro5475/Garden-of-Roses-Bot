@@ -111,7 +111,8 @@ private static async Task StartBotAsync()
                 foreach (var guild in _client.Guilds)
                 {
                     ulong guildId = guild.Id;
-                    var channelId = await ChannelConfigManager.GetSavedChannelIdAsync(guildId);
+                    var channelId = await ChannelConfigManager.LoadChannelIdForGuildAsync(guildId);
+
                     if (channelId != null)
                     {
                         await ServerPingManager.PingServersAsync(_client, guildId, false);
@@ -145,7 +146,8 @@ private static async Task ReadyAsync()
         StatusManager.StartRotatingStatus(_client);
 
         Log.Information("Registering commands...");
-        await commands.RegisterSlashCommands(_client);
+       await _commands.RegisterSlashCommands(_client);
+
 
         ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;
         if (guildId == 0)
