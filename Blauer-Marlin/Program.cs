@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Discord.Rest;
 
+//TODO Move Command Shit to own CLasses
 
 class Program
 {
-    private static List<Assembly> _loadedPlugins = new List<Assembly>();
+
     private static DiscordSocketClient _client;
     private static SocketTextChannel _channel;
     private static CommandService _commands;
@@ -552,9 +553,6 @@ case "setchannel":
     }
 
 
-    //TODO Own Class
-
-
 private static async Task SetSlowModeAsync(SocketSlashCommand command, int duration)
 {
     var channel = command.Channel as ITextChannel;
@@ -643,15 +641,10 @@ private static async Task UnmuteUserAsync(SocketUser user)
     }
 }
 
-private static async Task WarnUserAsync(SocketUser user, string message)
-{
-    // TODO: logic send in channel & send to user
-    Log.Information($"User {user.Username} warned for: {message}");
-}
 
 private static async Task ClearWarningsAsync(SocketUser user)
 {
-    // TODO: logic send in channel
+   //TODO LOGIC
     Log.Information($"Warnings for user {user.Username} cleared.");
 }
 
