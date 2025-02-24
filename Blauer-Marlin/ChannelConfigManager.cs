@@ -14,6 +14,8 @@ public class ChannelConfigManager
     /// </summary>
     public static async Task<SocketTextChannel?> GetSavedChannelAsync(DiscordSocketClient client, ulong guildId)
     {
+        Log.Information($"Fetching saved channel for Guild {guildId}...");
+
         var configData = await LoadChannelConfigAsync();
         if (configData.TryGetValue(guildId, out var channelId))
         {
@@ -23,13 +25,11 @@ public class ChannelConfigManager
                 Log.Error($"The saved channel (ID: {channelId}) for Guild {guildId} could not be found.");
                 return null;
             }
+            Log.Information($"Successfully retrieved saved channel: {channel.Name} (ID: {channelId}) for Guild {guildId}.");
             return channel;
         }
-        else
-        {
-            Log.Warning($"No saved channel ID found for Guild {guildId}.");
-        }
 
+        Log.Warning($"No saved channel ID found for Guild {guildId}.");
         return null;
     }
 
@@ -39,14 +39,16 @@ public class ChannelConfigManager
     /// </summary>
     public static async Task<ulong> LoadChannelIdForGuildAsync(ulong guildId)
     {
-        var configData = await LoadChannelConfigAsync(); // Load the full config dictionary
+        Log.Information($"Loading channel ID for Guild {guildId}...");
 
+        var configData = await LoadChannelConfigAsync();
         if (configData.TryGetValue(guildId, out var savedChannelId))
         {
-            return savedChannelId; // Return the saved channel ID for this guild
+            Log.Information($"Found saved channel ID {savedChannelId} for Guild {guildId}.");
+            return savedChannelId;
         }
-        
-        Log.Warning($"No saved channel ID found for Guild {guildId}.");
+
+        Log.Warning($"No saved channel ID found for Guild {guildId}. Returning 0.");
         return 0; // Return 0 if no channel ID is saved
     }
 
@@ -54,13 +56,43 @@ public class ChannelConfigManager
     /// Loads the channel configuration from a JSON file.
     /// If the file does not exist, it creates a new one.
     /// </summary>
-public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
-{
-    if (!File.Exists(ConfigFilePath))
+    public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
     {
-        Log.Warning($"Config file '{ConfigFilePath}' not found. Creating a new one with default values.");
+        Log.Information("Loading channel configuration...");
 
-        var defaultConfig = new Dictionary<ulong, ulong>(); // Empty dictionary
+        if (!File.Exists(ConfigFilePath))
+        {
+            Log.Warning($"Config file '{ConfigFilePath}' not found. Creating a new one with default values.");
+            return await CreateDefaultConfigAsync();
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(ConfigFilePath);
+            var configData = JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json);
+
+            if (configData == null)
+            {
+                Log.Warning($"Config file '{ConfigFilePath}' was empty or invalid. Creating a new default file.");
+                return await CreateDefaultConfigAsync();
+            }
+
+            Log.Information("Successfully loaded channel configuration.");
+            return configData;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error reading the channel configuration file. Creating a new default file.");
+            return await CreateDefaultConfigAsync();
+        }
+    }
+
+    /// <summary>
+    /// Creates a default empty configuration file.
+    /// </summary>
+    private static async Task<Dictionary<ulong, ulong>> CreateDefaultConfigAsync()
+    {
+        var defaultConfig = new Dictionary<ulong, ulong>();
 
         try
         {
@@ -73,27 +105,16 @@ public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
             Log.Error(ex, "Error creating the channel configuration file.");
         }
 
-        return defaultConfig; // Return the newly created empty dictionary
+        return defaultConfig;
     }
-
-    try
-    {
-        var json = await File.ReadAllTextAsync(ConfigFilePath);
-        return JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json) ?? new Dictionary<ulong, ulong>();
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Error reading the channel configuration file.");
-        return new Dictionary<ulong, ulong>(); // Return empty if file is corrupted
-    }
-}
-
 
     /// <summary>
     /// Saves the given guild-channel mapping to the config file.
     /// </summary>
     public static async Task<bool> SaveChannelConfigAsync(ulong guildId, ulong channelId)
     {
+        Log.Information($"Saving channel ID {channelId} for Guild {guildId}...");
+
         try
         {
             var configData = await LoadChannelConfigAsync();
@@ -105,7 +126,7 @@ public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error saving the channel configuration file.");
+            Log.Error(ex, $"Error saving channel ID {channelId} for Guild {guildId}.");
             return false;
         }
     }
@@ -115,10 +136,13 @@ public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
     /// </summary>
     private static async Task SaveChannelConfigAsync(Dictionary<ulong, ulong> configData)
     {
+        Log.Information("Saving channel configuration to file...");
+
         try
         {
             var json = JsonSerializer.Serialize(configData, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(ConfigFilePath, json);
+            Log.Information("Channel configuration successfully saved.");
         }
         catch (Exception ex)
         {
