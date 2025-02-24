@@ -54,26 +54,40 @@ public class ChannelConfigManager
     /// Loads the channel configuration from a JSON file.
     /// If the file does not exist, it creates a new one.
     /// </summary>
-    public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
+public static async Task<Dictionary<ulong, ulong>> LoadChannelConfigAsync()
+{
+    if (!File.Exists(ConfigFilePath))
     {
-        if (!File.Exists(ConfigFilePath))
-        {
-            Log.Warning($"Config file '{ConfigFilePath}' not found. Creating a new one...");
-            await SaveChannelConfigAsync(new Dictionary<ulong, ulong>()); // Create empty config file
-            return new Dictionary<ulong, ulong>();
-        }
+        Log.Warning($"Config file '{ConfigFilePath}' not found. Creating a new one with default values.");
+
+        var defaultConfig = new Dictionary<ulong, ulong>(); // Empty dictionary
 
         try
         {
-            var json = await File.ReadAllTextAsync(ConfigFilePath);
-            return JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json) ?? new Dictionary<ulong, ulong>();
+            var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(ConfigFilePath, json);
+            Log.Information($"New channel configuration file created at {ConfigFilePath}.");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error loading the channel configuration file.");
-            return new Dictionary<ulong, ulong>();
+            Log.Error(ex, "Error creating the channel configuration file.");
         }
+
+        return defaultConfig; // Return the newly created empty dictionary
     }
+
+    try
+    {
+        var json = await File.ReadAllTextAsync(ConfigFilePath);
+        return JsonSerializer.Deserialize<Dictionary<ulong, ulong>>(json) ?? new Dictionary<ulong, ulong>();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error reading the channel configuration file.");
+        return new Dictionary<ulong, ulong>(); // Return empty if file is corrupted
+    }
+}
+
 
     /// <summary>
     /// Saves the given guild-channel mapping to the config file.
