@@ -12,6 +12,7 @@ using Discord.Commands;
 using Serilog;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using Discord.Rest;
 
 
 class Program
@@ -482,19 +483,68 @@ case "unmute":
 
 
 case "userinfo":
-    var userInfo = command.Data.Options.FirstOrDefault()?.Value as SocketUser ?? command.User; //! added check if user exist 
+    var userInfo = command.Data.Options.FirstOrDefault()?.Value as SocketUser ?? command.User;
+    var guildUser = userInfo as SocketGuildUser;
+   
+
+    // Fetch User Roles
+    string roles = guildUser != null && guildUser.Roles.Count > 1
+        ? string.Join(", ", guildUser.Roles.Where(r => r.Id != guildUser.Guild.Id).Select(r => r.Mention))
+        : "None";
+
+    // Fetch Status and Device Info
+    string userStatus = guildUser?.Status.ToString() ?? "Unknown";
+    string devices = guildUser?.ActiveClients.Count > 0
+        ? string.Join(", ", guildUser.ActiveClients.Select(c => c.ToString()))
+        : "None";
+
+    // Fetch Badges
+    var badges = userInfo.PublicFlags.HasValue ? userInfo.PublicFlags.Value.ToString() : "None";
+
+    // Fetch Boosting Info
+    string boostingSince = guildUser?.PremiumSince.HasValue == true
+        ? guildUser.PremiumSince.Value.ToString("f")
+        : "Not Boosting";
+
+    // Fetch Nickname
+    string nickname = guildUser?.Nickname ?? "None";
+
+    // Fetch Join Date
+    string joinedAt = guildUser?.JoinedAt.HasValue == true
+        ? guildUser.JoinedAt.Value.ToString("f")
+        : "Unknown";
+
+    // Fetch Highest Role
+    string highestRole = guildUser?.Roles.OrderByDescending(r => r.Position).FirstOrDefault()?.Name ?? "None";
+
+    // Fetch Avatar and Banner
+    string avatarUrl = userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl();
+  
+
+    // Build Embed
     var userEmbed = new EmbedBuilder()
-        .WithTitle($"{userInfo.Username}'s Info")
-        .WithThumbnailUrl(userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl())
-        .AddField("User ID", userInfo.Id, true)
-        .AddField("Username", userInfo.Username, true)
-        .AddField("Discriminator", userInfo.Discriminator, true)
-        .AddField("Created At", userInfo.CreatedAt.ToString("g"), true)
+        .WithTitle($"👤 {userInfo.Username}'s Info")
+        .WithThumbnailUrl(avatarUrl)
         .WithColor(Color.Blue)
+        .AddField("🆔 User ID", userInfo.Id, true)
+        .AddField("📝 Username", userInfo.Username, true)
+        .AddField("🏷️ Discriminator", $"#{userInfo.Discriminator}", true)
+        .AddField("🔖 Badges", badges, true)
+        .AddField("🎭 Nickname", nickname, true)
+        .AddField("📅 Account Created", userInfo.CreatedAt.ToString("f"), true)
+        .AddField("📥 Joined Server", joinedAt, true)
+        .AddField("💎 Boosting Since", boostingSince, true)
+        .AddField("💼 Highest Role", highestRole, true)
+        .AddField("📌 Roles", roles, false)
+        .AddField("📶 Status", userStatus, true)
+        .AddField("📱 Active Devices", devices, true)
+        .WithFooter($"Requested by {command.User.Username}", command.User.GetAvatarUrl())
+        .WithTimestamp(DateTimeOffset.Now)
         .Build();
 
     await command.RespondAsync(embed: userEmbed);
     break;
+
 
 case "announce":
 //!
