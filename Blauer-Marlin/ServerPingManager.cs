@@ -15,6 +15,7 @@ namespace Blauer_Marlin.Properties
     {
         private static IUserMessage? _currentMessage;
 
+    
         public static async Task PingServersAsync(DiscordSocketClient client, ulong guildId, bool forceNewEmbed = false)
         {
             try

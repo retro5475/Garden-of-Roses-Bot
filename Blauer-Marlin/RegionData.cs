@@ -38,3 +38,15 @@ public static class RegionData
         }
     };
 }
+
+public class ServerInfo
+{
+    public string? Name { get; set; }
+    public string? IP { get; set; }
+}
+
+public class RegionInfo
+{
+    public string? Name { get; set; }
+    public List<ServerInfo> Servers { get; set; } = new List<ServerInfo>();
+}
