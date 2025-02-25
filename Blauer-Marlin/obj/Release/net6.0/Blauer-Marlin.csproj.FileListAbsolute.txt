@@ -280,3 +280,6 @@ c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\bin\Release\net6.0\r
 c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\obj\Release\net6.0\Blauer-M.0F159F25.Up2Date
 c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\obj\Release\net6.0\Blauer-Marlin.genruntimeconfig.cache
 c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\obj\Release\net6.0\ref\Blauer-Marlin.dll
+c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\bin\Release\net6.0\System.IO.Pipelines.dll
+c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\bin\Release\net6.0\System.Text.Encodings.Web.dll
+c:\Users\rober\source\repos\Blauer-Marlin-Bot\Blauer-Marlin\bin\Release\net6.0\System.Text.Json.dll
