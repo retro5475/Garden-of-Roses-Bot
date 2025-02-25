@@ -105,7 +105,7 @@ private static async Task StartBotAsync()
         await _client.SetStatusAsync(UserStatus.Online);
         await _client.SetGameAsync("N/A");
        
-        var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.GRxw_Y.ENzQs6oOadCFI1yqOaBVzg2gyLXoQ2fdyThVKQ"; // Bot token here
+        var token = "xxx"; // Bot token here
         await _client.LoginAsync(TokenType.Bot, token);
         await PluginLoader.LoadAndExecutePluginsForAllGuildsAsync(_client, async (guildId) =>
         {
