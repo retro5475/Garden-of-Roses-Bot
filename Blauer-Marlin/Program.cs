@@ -31,65 +31,49 @@ class Program
     private static readonly string ConfigFilePath = "files/regionPingStatus.json";
     
 
-  static async Task Main(string[] args)
-{
-    _client = new DiscordSocketClient();
-    _commands = new CommandService();
-        _client.Log += LogMessage;
-        _client.MessageReceived += MessageReceived;
-        _client.MessageDeleted += MessageDeleted;
-        _client.MessageUpdated += MessageUpdated;
-        _client.UserJoined += UserJoined;
-        _client.UserLeft += UserLeft;
-        _client.UserBanned += UserBanned;
-        _client.UserUnbanned += UserUnbanned;
-    CheckAndCreateDirectories();
-   
-    var buildDate = GetBuildDate(Assembly.GetExecutingAssembly());
-    var author = "Ambiente + Retro";
-
-    Log.Logger = new LoggerConfiguration()
-        .Enrich.FromLogContext()
-        .WriteTo.Console(
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
-            theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)  // Apply the cool ANSI theme
-        .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-        .Enrich.WithProperty("Application", "Blauer-Marlin-Bot")
-        .CreateLogger();
-
-    try
+    static async Task Main(string[] args)
     {
-        Log.Information("Bot starting...");
-        Log.Information($"Build Date: {buildDate}");
-        Log.Information($"Author: {author}");
+        // Initialize Serilog
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug() // Capture more detailed logs
+            .Enrich.FromLogContext()
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)
+            .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+            .Enrich.WithProperty("Application", "Blauer-Marlin-Bot")
+            .CreateLogger();
 
-        await StartBotAsync();
+        try
+        {
+            var buildDate = GetBuildDate(Assembly.GetExecutingAssembly());
+            var author = "Ambiente + Retro";
+
+            Log.Information("Bot starting...");
+            Log.Information($"Build Date: {buildDate}");
+            Log.Information($"Author: {author}");
+
+            await StartBotAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "An unhandled exception occurred during startup.");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
-    catch (Exception ex)
+
+
+  private static DateTime GetBuildDate(Assembly assembly)
     {
-        Log.Fatal(ex, "An unhandled exception occurred during startup.");
+        var filePath = assembly.Location;
+        var fileInfo = new FileInfo(filePath);
+        return fileInfo.LastWriteTime;
     }
-    finally
-    {
-        Log.CloseAndFlush();
-    }
-}
 
-private static DateTime GetBuildDate(Assembly assembly)
-{
-    var filePath = assembly.Location;
-    var fileInfo = new FileInfo(filePath);
-    return fileInfo.LastWriteTime;  
-}
-
-private static async Task<ulong> GetLogChannelForGuild(ulong guildId)
-{
-    // 🔹 Replace with actual logic to fetch log channels dynamically
-    return 1318285896029573153; // Replace with an actual log channel ID
-}
-
-
-private static async Task StartBotAsync()
+   private static async Task StartBotAsync()
 {
     try
     {
@@ -97,34 +81,34 @@ private static async Task StartBotAsync()
 
         _client = new DiscordSocketClient(new DiscordSocketConfig
         {
-            GatewayIntents = GatewayIntents.AllUnprivileged
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
         });
 
-         _commands = new CommandService();
+        _commands = new CommandService();
 
-        _client.Log += logMessage =>
-        {
-            Log.Information($"Discord Log: {logMessage}");
-            return Task.CompletedTask;
-        };
-
+        // Attach event handlers
+        //! if the event handlers are called before the bot is actually started up,
+        //! the bot doesnt initialize them!
+        _client.Log += LogMessage;
         _client.Ready += ReadyAsync;
         _client.SlashCommandExecuted += HandleSlashCommandAsync;
+        _client.MessageReceived += MessageReceived;
+        _client.MessageDeleted += MessageDeleted;
+        _client.MessageUpdated += MessageUpdated;
+        _client.UserJoined += UserJoined;
+        _client.UserLeft += UserLeft;
+        _client.UserBanned += UserBanned;
+        _client.UserUnbanned += UserUnbanned;
 
         await _client.SetStatusAsync(UserStatus.Online);
         await _client.SetGameAsync("N/A");
-       
-        var token = "xxx"; // Bot token here
+
+        var token = "xxx"; // 🔹 Bot token here
         await _client.LoginAsync(TokenType.Bot, token);
-        await PluginLoader.LoadAndExecutePluginsForAllGuildsAsync(_client, async (guildId) =>
-        {
-            return await GetLogChannelForGuild(guildId);
-        });
 
         await _client.StartAsync();
 
         _timer = new System.Timers.Timer(60000);
-
         _timer.Elapsed += async (sender, e) =>
         {
             try
@@ -149,7 +133,7 @@ private static async Task StartBotAsync()
         _timer.Start();
 
         Log.Information("Bot started. Waiting for commands...");
-       await Task.Delay(Timeout.Infinite); 
+        await Task.Delay(-1);
     }
     catch (Exception ex)
     {
@@ -157,43 +141,43 @@ private static async Task StartBotAsync()
     }
 }
 
-private static async Task ReadyAsync()
-{
-    try
+
+
+    private static async Task ReadyAsync()
     {
-        Log.Information("Bot is ready!");
-        LoadRegionPingStatus();
-
-        StatusManager.StartRotatingStatus(_client);
-
-        Log.Information("Registering commands...");
-       await commands.RegisterSlashCommands(_client);
-
-
-        ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;
-        if (guildId == 0)
+        try
         {
-            Log.Error("No guild found. The bot must be in a server.");
-            return;
-        }
+            Log.Information("Bot is ready!");
 
-        var channel = await ChannelConfigManager.GetSavedChannelAsync(_client, guildId);
-        if (channel == null)
+            StatusManager.StartRotatingStatus(_client);
+            LoadRegionPingStatus();
+            Log.Information("Registering commands...");
+            await commands.RegisterSlashCommands(_client);
+
+            ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;
+            if (guildId == 0)
+            {
+                Log.Error("No guild found. The bot must be in a server.");
+                return;
+            }
+
+            var channel = await ChannelConfigManager.GetSavedChannelAsync(_client, guildId);
+            if (channel == null)
+            {
+                Log.Error($"No saved channel found for Guild {guildId}. Please set the channel using /setchannel.");
+                return;
+            }
+
+            _channel = channel;
+            await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
+
+            Log.Information("Ready event handled.");
+        }
+        catch (Exception ex)
         {
-            Log.Error($"No saved channel found for Guild {guildId}. Please set the channel using /setchannel.");
-            return;
+            Log.Error(ex, "Error processing ReadyAsync.");
         }
-
-        _channel = channel;
-        _currentMessage = await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
-
-        Log.Information("Ready event handled.");
     }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Error processing ReadyAsync.");
-    }
-}
 
        private static Task LogMessage(LogMessage message)
     {
@@ -220,7 +204,7 @@ private static async Task ReadyAsync()
         await SendLogToChannel($"🗑️ **Message deleted** in `{channelInstance?.Name}`: `{message.Content}`");
     }
 
-    private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
+    private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel) //! ISocket is only channel from guild
     {
         var oldMessage = await before.GetOrDownloadAsync();
         if (oldMessage == null) return;
@@ -279,15 +263,15 @@ private static async Task ReadyAsync()
 
     
 
-private static void CheckAndCreateDirectories()
-{
-    string directoryPath = Path.GetDirectoryName(ConfigFilePath);
-    if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
-    {
-        Directory.CreateDirectory(directoryPath);
-        Log.Information($"Created missing directory: {directoryPath}");
-    }
-}
+// private static void CheckAndCreateDirectories()  //! PLugin scheisse 
+// {
+//     string directoryPath = Path.GetDirectoryName(ConfigFilePath);
+//     if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
+//     {
+//         Directory.CreateDirectory(directoryPath);
+//         Log.Information($"Created missing directory: {directoryPath}");
+//     }
+// }
 
     private static async Task HandleSlashCommandAsync(SocketSlashCommand command)
     {
@@ -323,8 +307,6 @@ case "help":
         "`/setprefix` - Sets a custom prefix.\n" +
         "`/clear` - Clears messages in a channel.\n", Color.Green));
     break;
-
-
 case "status":
     Log.Information("Status command executed.");
     string statusMessage = "Current Region Status:\n\n";
@@ -342,7 +324,6 @@ case "reload":
     await ServerPingManager.PingServersAsync(_client, command.GuildId.Value, true);
     await command.RespondAsync("Server status reloaded. The old embed has been deleted, and a new one has been sent.", ephemeral: true);
     break;
-
 case "europe":
 case "usa":
 case "japan":
@@ -357,9 +338,7 @@ case "japan":
             _regionPingStatus[regionName] ? Color.Green : Color.Red), ephemeral: true);
     }
     break;
-
-
-             case "shutdown":
+    case "shutdown":
     Log.Information("Shutting down the bot...");
     await command.RespondAsync("Shutting down...", ephemeral: true);
     Environment.Exit(0);
