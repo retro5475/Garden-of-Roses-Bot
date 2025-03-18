@@ -26,6 +26,7 @@ class Program
     private static System.Timers.Timer _timer;
     private static IUserMessage _currentMessage;
     private static Dictionary<string, bool> _regionPingStatus;
+     private static ulong _logChannelId = 1350960408453976206;
 
     private static readonly string ConfigFilePath = "files/regionPingStatus.json";
     
@@ -34,6 +35,14 @@ class Program
 {
     _client = new DiscordSocketClient();
     _commands = new CommandService();
+        _client.Log += LogMessage;
+        _client.MessageReceived += MessageReceived;
+        _client.MessageDeleted += MessageDeleted;
+        _client.MessageUpdated += MessageUpdated;
+        _client.UserJoined += UserJoined;
+        _client.UserLeft += UserLeft;
+        _client.UserBanned += UserBanned;
+        _client.UserUnbanned += UserUnbanned;
     CheckAndCreateDirectories();
    
     var buildDate = GetBuildDate(Assembly.GetExecutingAssembly());
@@ -185,6 +194,75 @@ private static async Task ReadyAsync()
         Log.Error(ex, "Error processing ReadyAsync.");
     }
 }
+
+       private static Task LogMessage(LogMessage message)
+    {
+        Log.Information("[Discord] {Source}: {Message}", message.Source, message.Message);
+        SendLogToChannel($"**[Discord]** `{message.Source}`: {message.Message}");
+        return Task.CompletedTask;
+    }
+
+    private static async Task MessageReceived(SocketMessage message)
+    {
+        if (message.Author.IsBot) return;
+
+        Log.Information("[Message] {Author}: {Content}", message.Author.Username, message.Content);
+        await SendLogToChannel($"**[Message]** `{message.Author.Username}`: {message.Content}");
+    }
+
+    private static async Task MessageDeleted(Cacheable<IMessage, ulong> cache, Cacheable<IMessageChannel, ulong> channel)
+    {
+        var message = await cache.GetOrDownloadAsync();
+        if (message == null) return;
+
+        var channelInstance = await channel.GetOrDownloadAsync();
+        Log.Information("[MessageDeleted] in {Channel}: {Content}", channelInstance?.Name, message.Content);
+        await SendLogToChannel($"🗑️ **Message deleted** in `{channelInstance?.Name}`: `{message.Content}`");
+    }
+
+    private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
+    {
+        var oldMessage = await before.GetOrDownloadAsync();
+        if (oldMessage == null) return;
+
+        Log.Information("[MessageUpdated] in {Channel}: {Old} -> {New}", channel.Name, oldMessage.Content, after.Content);
+        await SendLogToChannel($"✏️ **Message updated** in `{channel.Name}`: `{oldMessage.Content}` -> `{after.Content}`");
+    }
+
+    private static async Task UserJoined(SocketGuildUser user)
+    {
+        Log.Information("[UserJoined] {Username} joined {Guild}", user.Username, user.Guild.Name);
+        await SendLogToChannel($"✅ **{user.Username}** joined **{user.Guild.Name}**");
+    }
+
+    private static async Task UserLeft(SocketGuild guild, SocketUser user)
+    {
+        Log.Information("[UserLeft] {Username} left {Guild}", user.Username, guild.Name);
+        await SendLogToChannel($"❌ **{user.Username}** left **{guild.Name}**");
+    }
+
+    private static async Task UserBanned(SocketUser user, SocketGuild guild)
+    {
+        Log.Information("[UserBanned] {Username} in {Guild}", user.Username, guild.Name);
+        await SendLogToChannel($"🚫 **{user.Username}** was banned from `{guild.Name}`");
+    }
+
+    private static async Task UserUnbanned(SocketUser user, SocketGuild guild)
+    {
+        Log.Information("[UserUnbanned] {Username} in {Guild}", user.Username, guild.Name);
+        await SendLogToChannel($"✅ **{user.Username}** was unbanned from `{guild.Name}`");
+    }
+
+    private static async Task SendLogToChannel(string message)
+    {
+        if (_client == null || _logChannelId == 0) return;
+
+        var channel = _client.GetChannel(_logChannelId) as IMessageChannel;
+        if (channel != null)
+        {
+            await channel.SendMessageAsync(message);
+        }
+    }
 
 
 
