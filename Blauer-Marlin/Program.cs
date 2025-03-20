@@ -33,6 +33,7 @@ class Program
 
     static async Task Main(string[] args)
     {
+        
         // Initialize Serilog
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug() // Capture more detailed logs
@@ -41,6 +42,7 @@ class Program
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
                 theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)
             .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+             .WriteTo.Sink(new DiscordSink(null, _client, _logChannelId))
             .Enrich.WithProperty("Application", "Blauer-Marlin-Bot")
             .CreateLogger();
 
@@ -73,7 +75,7 @@ class Program
         return fileInfo.LastWriteTime;
     }
 
-   private static async Task StartBotAsync()
+  private static async Task StartBotAsync()
 {
     try
     {
@@ -87,8 +89,6 @@ class Program
         _commands = new CommandService();
 
         // Attach event handlers
-        //! if the event handlers are called before the bot is actually started up,
-        //! the bot doesnt initialize them!
         _client.Log += LogMessage;
         _client.Ready += ReadyAsync;
         _client.SlashCommandExecuted += HandleSlashCommandAsync;
@@ -103,10 +103,13 @@ class Program
         await _client.SetStatusAsync(UserStatus.Online);
         await _client.SetGameAsync("N/A");
 
-        var token = "xxx"; // 🔹 Bot token here
+        var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.G2ub8d._dDOCQr1Kxx5qIwh7ttEXhmnOkF3e83ePJXuMk"; // 🔹 Bot token here
+        Log.Information("Logging in with token...");
         await _client.LoginAsync(TokenType.Bot, token);
+        Log.Information("Successfully logged in!");
 
         await _client.StartAsync();
+        Log.Information("Bot connected to Discord API. Waiting for events...");
 
         _timer = new System.Timers.Timer(60000);
         _timer.Elapsed += async (sender, e) =>
@@ -141,125 +144,133 @@ class Program
     }
 }
 
-
-
-    private static async Task ReadyAsync()
+private static async Task ReadyAsync()
+{
+    try
     {
-        try
+        Log.Information("Bot is ready!");
+        StatusManager.StartRotatingStatus(_client);
+        LoadRegionPingStatus();
+        Log.Information("Registering commands...");
+        await commands.RegisterSlashCommands(_client);
+
+        ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;
+        if (guildId == 0)
         {
-            Log.Information("Bot is ready!");
-
-            StatusManager.StartRotatingStatus(_client);
-            LoadRegionPingStatus();
-            Log.Information("Registering commands...");
-            await commands.RegisterSlashCommands(_client);
-
-            ulong guildId = _client.Guilds.FirstOrDefault()?.Id ?? 0;
-            if (guildId == 0)
-            {
-                Log.Error("No guild found. The bot must be in a server.");
-                return;
-            }
-
-            var channel = await ChannelConfigManager.GetSavedChannelAsync(_client, guildId);
-            if (channel == null)
-            {
-                Log.Error($"No saved channel found for Guild {guildId}. Please set the channel using /setchannel.");
-                return;
-            }
-
-            _channel = channel;
-            await _channel.SendMessageAsync(embed: CreateEmbed("Initializing server status..."));
-
-            Log.Information("Ready event handled.");
+            Log.Error("No guild found. The bot must be in a server.");
+            return;
         }
-        catch (Exception ex)
+
+        var channel = await ChannelConfigManager.GetSavedChannelAsync(_client, guildId);
+        if (channel == null)
         {
-            Log.Error(ex, "Error processing ReadyAsync.");
+            Log.Error($"No saved channel found for Guild {guildId}. Please set the channel using /setchannel.");
+            return;
         }
+
+        _channel = channel;
+
+        await SendLogToChannel("✅ **Bot Started Successfully**", 
+            $"Bot is connected to `{_client.Guilds.Count}` guild(s) and ready to handle commands.", 
+            Color.Green);
+
+        Log.Information("Ready event handled.");
     }
-
-       private static Task LogMessage(LogMessage message)
+    catch (Exception ex)
     {
-        Log.Information("[Discord] {Source}: {Message}", message.Source, message.Message);
-        SendLogToChannel($"**[Discord]** `{message.Source}`: {message.Message}");
-        return Task.CompletedTask;
+        Log.Error(ex, "Error processing ReadyAsync.");
     }
+}
 
-    private static async Task MessageReceived(SocketMessage message)
+private static async Task SendLogToChannel(string title, string message, Color color)
+{
+    if (_client == null || _logChannelId == 0) return;
+
+    var channel = _client.GetChannel(_logChannelId) as IMessageChannel;
+    if (channel != null)
     {
-        if (message.Author.IsBot) return;
-
-        Log.Information("[Message] {Author}: {Content}", message.Author.Username, message.Content);
-        await SendLogToChannel($"**[Message]** `{message.Author.Username}`: {message.Content}");
-    }
-
-    private static async Task MessageDeleted(Cacheable<IMessage, ulong> cache, Cacheable<IMessageChannel, ulong> channel)
-    {
-        var message = await cache.GetOrDownloadAsync();
-        if (message == null) return;
-
-        var channelInstance = await channel.GetOrDownloadAsync();
-        Log.Information("[MessageDeleted] in {Channel}: {Content}", channelInstance?.Name, message.Content);
-        await SendLogToChannel($"🗑️ **Message deleted** in `{channelInstance?.Name}`: `{message.Content}`");
-    }
-
-    private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel) //! ISocket is only channel from guild
-    {
-        var oldMessage = await before.GetOrDownloadAsync();
-        if (oldMessage == null) return;
-
-        Log.Information("[MessageUpdated] in {Channel}: {Old} -> {New}", channel.Name, oldMessage.Content, after.Content);
-        await SendLogToChannel($"✏️ **Message updated** in `{channel.Name}`: `{oldMessage.Content}` -> `{after.Content}`");
-    }
-
-    private static async Task UserJoined(SocketGuildUser user)
-    {
-        Log.Information("[UserJoined] {Username} joined {Guild}", user.Username, user.Guild.Name);
-        await SendLogToChannel($"✅ **{user.Username}** joined **{user.Guild.Name}**");
-    }
-
-    private static async Task UserLeft(SocketGuild guild, SocketUser user)
-    {
-        Log.Information("[UserLeft] {Username} left {Guild}", user.Username, guild.Name);
-        await SendLogToChannel($"❌ **{user.Username}** left **{guild.Name}**");
-    }
-
-    private static async Task UserBanned(SocketUser user, SocketGuild guild)
-    {
-        Log.Information("[UserBanned] {Username} in {Guild}", user.Username, guild.Name);
-        await SendLogToChannel($"🚫 **{user.Username}** was banned from `{guild.Name}`");
-    }
-
-    private static async Task UserUnbanned(SocketUser user, SocketGuild guild)
-    {
-        Log.Information("[UserUnbanned] {Username} in {Guild}", user.Username, guild.Name);
-        await SendLogToChannel($"✅ **{user.Username}** was unbanned from `{guild.Name}`");
-    }
-
-    private static async Task SendLogToChannel(string message)
-    {
-        if (_client == null || _logChannelId == 0) return;
-
-        var channel = _client.GetChannel(_logChannelId) as IMessageChannel;
-        if (channel != null)
-        {
-            await channel.SendMessageAsync(message);
-        }
-    }
-
-
-
-    private static Embed CreateEmbed(string description, Color? color = null)
-    {
-        Log.Information("Creating embed with description: {Description}", description);
-        return new EmbedBuilder()
-            .WithTitle("FFXIV Server Status")
-            .WithDescription(description)
-            .WithColor(color ?? Color.Blue)
+        var embed = new EmbedBuilder()
+            .WithTitle(title)
+            .WithDescription(message)
+            .WithColor(color)
             .WithTimestamp(DateTimeOffset.Now)
+            .WithFooter($"Response time: {DateTimeOffset.Now.Millisecond}ms") // ✅ Auto ms response
             .Build();
+
+        await channel.SendMessageAsync(embed: embed);
     }
+}
+
+private static Task LogMessage(LogMessage message)
+{
+    Log.Information("[Discord] {Source}: {Message}", message.Source, message.Message);
+    SendLogToChannel($"📢 **[Discord] {message.Source}**", message.Message, Color.Blue);
+    return Task.CompletedTask;
+}
+
+private static async Task MessageReceived(SocketMessage message)
+{
+    if (message.Author.IsBot) return;
+
+    Log.Information("[Message] {Author}: {Content}", message.Author.Username, message.Content);
+    await SendLogToChannel("💬 **New Message**", $"**{message.Author.Username}:** {message.Content}", Color.Green);
+}
+
+private static async Task MessageDeleted(Cacheable<IMessage, ulong> cache, Cacheable<IMessageChannel, ulong> channel)
+{
+    var message = await cache.GetOrDownloadAsync();
+    if (message == null) return;
+
+    var channelInstance = await channel.GetOrDownloadAsync();
+    Log.Information("[MessageDeleted] in {Channel}: {Content}", channelInstance?.Name, message.Content);
+    await SendLogToChannel("🗑️ **Message Deleted**", $"**In:** {channelInstance?.Name}\n**Content:** {message.Content}", Color.Red);
+}
+
+private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
+{
+    var oldMessage = await before.GetOrDownloadAsync();
+    if (oldMessage == null) return;
+
+    Log.Information("[MessageUpdated] in {Channel}: {Old} -> {New}", channel.Name, oldMessage.Content, after.Content);
+    await SendLogToChannel("✏️ **Message Edited**", $"**In:** {channel.Name}\n**Before:** {oldMessage.Content}\n**After:** {after.Content}", Color.Orange);
+}
+
+private static async Task UserJoined(SocketGuildUser user)
+{
+    Log.Information("[UserJoined] {Username} joined {Guild}", user.Username, user.Guild.Name);
+    await SendLogToChannel("✅ **User Joined**", $"**{user.Username}** joined **{user.Guild.Name}**", Color.Green);
+}
+
+private static async Task UserLeft(SocketGuild guild, SocketUser user)
+{
+    Log.Information("[UserLeft] {Username} left {Guild}", user.Username, guild.Name);
+    await SendLogToChannel("❌ **User Left**", $"**{user.Username}** left **{guild.Name}**", Color.Red);
+}
+
+private static async Task UserBanned(SocketUser user, SocketGuild guild)
+{
+    Log.Information("[UserBanned] {Username} in {Guild}", user.Username, guild.Name);
+    await SendLogToChannel("🚫 **User Banned**", $"**{user.Username}** was banned from `{guild.Name}`", Color.DarkRed);
+}
+
+private static async Task UserUnbanned(SocketUser user, SocketGuild guild)
+{
+    Log.Information("[UserUnbanned] {Username} in {Guild}", user.Username, guild.Name);
+    await SendLogToChannel("✅ **User Unbanned**", $"**{user.Username}** was unbanned from `{guild.Name}`", Color.Green);
+}
+
+private static Embed CreateEmbed(string description, Color? color = null)
+{
+    Log.Information("Creating embed with description: {Description}", description);
+    return new EmbedBuilder()
+        .WithTitle("FFXIV Server Status")
+        .WithDescription(description)
+        .WithColor(color ?? Color.Blue)
+        .WithTimestamp(DateTimeOffset.Now)
+        .WithFooter($"Response time: {DateTimeOffset.Now.Millisecond}ms") // ✅ Auto ms response
+        .Build();
+}
+
 
     
 
@@ -278,12 +289,13 @@ class Program
         try
         {
             Log.Information("Handling slash command: {CommandName}", command.CommandName);
-
+            Log.Information("[SlashCommand] {User} used /{Command}", command.User.Username, command.CommandName);
+            await SendLogToChannel("⚡ **Slash Command Executed**", $"**User:** {command.User.Username}\n**Command:** /{command.CommandName}", Color.Purple);
             switch (command.CommandName)
             {
 case "help":
     Log.Information("User requested help.");
-    await command.RespondAsync(embed: CreateEmbed("Available commands:\n\n" +
+    await command.RespondAsync(embed: CreateEmbed("Available comman     ds:\n\n" +
         "`/europe` - Toggles Europe server ping.\n" +
         "`/usa` - Toggles North America server ping.\n" +
         "`/japan` - Toggles Japan server ping.\n" +
@@ -606,6 +618,7 @@ case "setchannel":
     break;
 
       default:
+    
     await command.RespondAsync("Unknown command.", ephemeral: true);
     Log.Warning($"Unknown command {command.CommandName} invoked.");
     break;
@@ -614,6 +627,8 @@ case "setchannel":
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error executing slash command {Command}", command.CommandName);
+        await SendLogToChannel("❌ **Command Error**", $"**Command:** {command.CommandName}\n**Error:** {ex.Message}", Color.Red);
             Log.Error(ex, "Error occurred while handling command.");
             await command.RespondAsync("An error occurred while processing your request.", ephemeral: true);
         }
