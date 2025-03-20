@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8822a0370dba6980f0db9cf9f892c493485f4e2e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+66e241fd0e0b2fd3e7e597a9a3d6ed76046c28f2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Blauer-Marlin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

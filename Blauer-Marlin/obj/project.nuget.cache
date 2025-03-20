@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Bq2OYRVdKJE=",
+  "dgSpecHash": "5vxz6xoOD18=",
   "success": true,
-  "projectFilePath": "C:\\Users\\rober\\source\\repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
+  "projectFilePath": "c:\\Users\\rober\\source\\repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\Blauer-Marlin.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rober\\.nuget\\packages\\discord.net\\3.17.1\\discord.net.3.17.1.nupkg.sha512",
     "C:\\Users\\rober\\.nuget\\packages\\discord.net.commands\\3.17.1\\discord.net.commands.3.17.1.nupkg.sha512",
@@ -46,12 +46,6 @@
     "C:\\Users\\rober\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.36\\microsoft.netcore.app.host.win-x64.6.0.36.nupkg.sha512"
   ],
   "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file C:\\Users\\rober\\source\\repos\\Blauer-Marlin-Bot\\Blauer-Marlin\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
-    },
     {
       "code": "NU1701",
       "level": "Warning",
