@@ -42,7 +42,6 @@ class Program
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
                 theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)
             .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-             .WriteTo.Sink(new DiscordSink(null, _client, _logChannelId))
             .Enrich.WithProperty("Application", "Blauer-Marlin-Bot")
             .CreateLogger();
 
