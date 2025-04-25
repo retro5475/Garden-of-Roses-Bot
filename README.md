@@ -1,6 +1,6 @@
-# Blauer-Marlin Bot
+# Garden of Roses Bot
 
-Blauer-Marlin is a powerful and easy-to-maintain open-source Discord bot built in C#. It provides various moderation tools, an FFXIV server status checker, and many other useful features to enhance your Discord server.
+Garden-of-Roses is a powerful and easy-to-maintain open-source Discord bot built in C#. It provides various moderation tools, an FFXIV server status checker, and many other useful features to enhance your Discord server.
 
 ## Features
 - **Moderation Tools**: Kick, ban, mute, and manage users with ease.
@@ -17,8 +17,8 @@ Blauer-Marlin is a powerful and easy-to-maintain open-source Discord bot built i
 ### Steps
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/blauer-marlin.git
-   cd blauer-marlin
+   git clone https://github.com/your-repo/Garden-of-Roses.git
+   cd Garden-of-Roses
    ```
 2. Install dependencies:
    ```sh
@@ -36,7 +36,7 @@ Blauer-Marlin is a powerful and easy-to-maintain open-source Discord bot built i
 Contributions are welcome! Feel free to open issues, submit pull requests, or suggest new features.
 
 ## Credits
-Blauer-Marlin Bot – ein Bot mit vielen Möglichkeiten und Features
+Garden-of-Roses Bot – ein Bot mit vielen Möglichkeiten und Features
 Coded in C# by the two masterminds behind it:
 @Isaac und @Ambiente Hinageshi ❤
 
