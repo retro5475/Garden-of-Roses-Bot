@@ -17,7 +17,7 @@ Garden-of-Roses is a powerful and easy-to-maintain open-source Discord bot built
 ### Steps
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/Garden-of-Roses.git
+   git clone https://github.com/your-repo/Garden-of-Roses-Bot.git
    cd Garden-of-Roses
    ```
 2. Install dependencies:
