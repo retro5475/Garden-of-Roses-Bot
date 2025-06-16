@@ -102,7 +102,7 @@ class Program
         await _client.SetStatusAsync(UserStatus.Online);
         await _client.SetGameAsync("N/A");
 
-        var token = "MTMzMzQ3MDI1NTk4ODg3MTE5Mg.G2ub8d._dDOCQr1Kxx5qIwh7ttEXhmnOkF3e83ePJXuMk"; // 🔹 Bot token here
+        var token = ""; // 🔹 Bot token here
         Log.Information("Logging in with token...");
         await _client.LoginAsync(TokenType.Bot, token);
         Log.Information("Successfully logged in!");

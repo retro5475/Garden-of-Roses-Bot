@@ -31,7 +31,7 @@ public static class ServerPingManager
             var embed = new EmbedBuilder()
                 .WithTitle("FFXIV Server Status")
                 .WithColor(Color.Blue)
-                .WithImageUrl("https://lds-img.finalfantasyxiv.com/h/e/2a9GxMb6zta1aHsi8u-Pw9zByc.jpg")
+                .WithImageUrl("")
                 .WithTimestamp(DateTimeOffset.Now);
 
             var regionStatuses = LoadRegionStatuses(guildId);
